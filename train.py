@@ -1,21 +1,38 @@
 from models.resnet import ResNet
+from evaluation.metrics import F1Metric
 from datasets.ptbxldataset import PTBXLDataset
 from datasets.arr10000dataset import Arr10000Dataset
 from datasets.datagenerator import DataGenerator
 from datasets.mitbihardataset import MITBIHARDataset
 import tensorflow as tf
+import os
 
 classes = "rhythm"
 
 num_classes = 5
 
-dat = MITBIHARDataset('mitdb')
-#dat.generate_val_set('specific','static',False)
-#dat.generate_test_set('specific','static',False)
+db_name = "mitdb"
+choice = "static"
+eval_p = "specific"
+patient_id = "203"
 
-train = dat.read_dataset('specific','static', 'train', '201' )
-val = dat.read_dataset('specific','static', 'val', '201' )
-test = dat.read_dataset('specific','static', 'test', '201' )
+# experiments/mitdb/static/specificpatient/201/models/"
+exp_path = "experiments"+os.sep+db_name+os.sep+choice+os.sep+eval_p+"patient"+os.sep+patient_id
+if not os.path.exists(exp_path):
+    os.makedirs(exp_path)
+    os.mkdir(exp_path+os.sep+"models")
+    os.mkdir(exp_path+os.sep+"results")
+
+dat = MITBIHARDataset(db_name)
+
+## Warning: for now balance = True and False are treated the same and saved to same files (i.e. overwritten)
+#dat.generate_train_set(eval_p,choice,True)
+#dat.generate_val_set(eval_p,choice,False)
+#dat.generate_test_set(eval_p,choice,False)
+
+train = dat.load_dataset(eval_p,choice, 'train', patient_id )
+val = dat.load_dataset(eval_p,choice, 'val', patient_id )
+test = dat.load_dataset(eval_p,choice, 'test', patient_id )
 
 if len(train) != 2:
     print("generate crossval splits")
@@ -53,18 +70,27 @@ m1 = tf.keras.Model(inputs=inputs, outputs=model.call(inputs))
 
 m1.summary()
 
-tf.keras.utils.plot_model(m1,
-    to_file="ResNet-model-shapes.png",
-    show_shapes=True,
-    show_dtype=False,
-    show_layer_names=False,
-    rankdir="TB",
-    expand_nested=False,
-    dpi=300)
+# tf.keras.utils.plot_model(m1,
+#     to_file="ResNet-model-shapes.png",
+#     show_shapes=True,
+#     show_dtype=False,
+#     show_layer_names=False,
+#     rankdir="TB",
+#     expand_nested=False,
+#     dpi=300)
 
-model.compile(optimizer=tf.keras.optimizers.Adam(beta_1=0.9, beta_2=0.98, epsilon=1e-9),
-                loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-                metrics=[tf.keras.metrics.SparseCategoricalAccuracy(name='acc')])
+opt = tf.keras.optimizers.Adam(lr=0.0001)
+
+m1.compile(optimizer=opt, 
+                #tf.keras.optimizers.Adam(beta_1=0.9, beta_2=0.98, epsilon=1e-9),
+                #loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                loss='categorical_crossentropy',
+                metrics='acc')
+
+es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5 )
+log_f1 = F1Metric(train=train,validation=val, path=exp_path+os.sep+"models")
+
+m1.fit(x=train[0],y=train[1], validation_data = val, callbacks = [es, log_f1], epochs = 2)
 
 
 '''
