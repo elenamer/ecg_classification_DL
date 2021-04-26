@@ -329,7 +329,20 @@ class MITBIHARDataset():
         return full_data, full_labels
 
     def balance(self, data, labels):
-        print("not implemented")
+        # To Do: add more options for balancing, which classes and how much
+        print(Counter(labels))
+        labels = np.array(labels)
+        data = np.array(data)
+        C0 = np.argwhere(labels == 'N').flatten()
+        C0_subsampled = C0[0::10]
+        C0 = np.setdiff1d(C0,C0_subsampled)
+        print("N indices")
+        print(len(C0))
+        print(len(C0_subsampled))
+        labels = np.delete(labels,C0,axis=0)
+        data = np.delete(data,C0,axis=0) 
+        print(Counter(labels))
+        return data.tolist(), labels.tolist()
 
     def shuffle(self, data, labels):
         #np.random.seed(random_seed)
