@@ -13,6 +13,8 @@ import pickle
 from skimage import transform
 import matplotlib.pyplot as plt
 from scipy.signal import resample
+import tensorflow as tf
+from sklearn import preprocessing
 
 random_seed=100
 
@@ -23,9 +25,6 @@ results_path = "./data_overviews"
 aami_annots_list=['N','L','R','e','j','S','A','a','J','V','E','F','/','f','Q']
 
 WFDB = "/usr/local/bin"#/home/elena/wfdb/bin"
-
-classes = ['N', 'S', 'V', 'F', 'Q']
-
 
 
 N_SAMPLES_BEFORE_R_static=100
@@ -137,6 +136,9 @@ class MITBIHARDataset():
         self.path = "./data/"+name+"/"
         #self.num_channels = n_channels
         self.patientids = self.get_patientids()
+
+        self.classes = ["N", "S", "V", "F", "Q"]
+
 
         # for patient-specific
         self.common_patients = [101,106,108,109,112,114,115,116,118,119,122,124,100,103,105,111,113,117,121,123]
@@ -320,8 +322,8 @@ class MITBIHARDataset():
         full_labels = []
         for patient in self.common_patients:
             beats, labels = self.segment(patient, choice, 0, -1) 
-            full_data.append(beats)
-            full_labels.append(labels)
+            full_data.extend(beats)
+            full_labels.extend(labels)
         if balance:
             full_data, full_labels = self.balance(full_data, full_labels)
         return full_data, full_labels
@@ -335,6 +337,23 @@ class MITBIHARDataset():
         data= data[permute]
         labels = labels[permute]
         return data, labels
+
+    def process_dataset(self, data, labels):
+        data = np.asarray(data)
+        print(data.shape)
+
+        #data=data[:,:,0]
+        #full_labels = np.array(labels)
+        print(len(labels))
+        le = preprocessing.LabelEncoder()
+        le.fit(self.classes)
+        print(list(le.classes_))
+        labels = le.transform(labels)
+        full_data, full_labels = self.shuffle(data, labels)
+
+        full_labels = tf.keras.utils.to_categorical(full_labels, num_classes=len(self.classes))
+        return full_data, full_labels
+
 
     def generate_train_set(self, eval_p, choice, balance):
         # for patient in patients(train):
@@ -355,37 +374,32 @@ class MITBIHARDataset():
                 beats, labels = self.segment(patient, choice, 0, 2.5)
                 if balance:
                     beats, labels = self.balance(beats, labels)
+                print(len(full_data))
+                print(len(full_labels))
+                print(len(beats))
+                print(len(labels))
                 full_data.extend(beats)
                 full_labels.extend(labels)
-                full_data = np.asarray(full_data)
-                #data=data[:,:,0]
-                full_labels = np.array(full_labels)
-                full_data, full_labels = self.shuffle(full_data, full_labels)
+                print(len(full_data))
+                print(len(full_labels))
                 # mitdb/specificpatient/train201_static.pkl
-                TRAIN_SET_PATH = self.path+os.sep+eval_p+"patient"+os.sep+"train"+patient+"_"+choice+".pkl"
-                with open(TRAIN_SET_PATH, 'wb') as file:
-                    pickle.dump({'data': full_data, 'labels': full_labels}, file)   
+                TRAIN_SET_PATH = path+os.sep+"train"+patient+"_"+choice+".pkl"
+                full_data, full_labels = self.process_dataset(full_data, full_labels)
+                self.save_dataset(full_data, full_labels, TRAIN_SET_PATH)
+
         if eval_p == "inter":
             data, labels = self.generate_dataset(self.ds1_patients, choice, balance)
-            full_data = np.asarray(data)
-            #data=data[:,:,0]
-            full_labels = np.array(labels)
-            full_data, full_labels = self.shuffle(full_data, full_labels)
+            full_data, full_labels = self.process_dataset(data, labels)
             # mitdb/interpatient/train1_static.pkl
-            TRAIN_SET_PATH = self.path+os.sep+eval_p+"patient"+os.sep+"train1_"+choice+".pkl"
-            with open(TRAIN_SET_PATH, 'wb') as file:
-                pickle.dump({'data': full_data, 'labels': full_labels}, file)  
+            TRAIN_SET_PATH = path+os.sep+"train1_"+choice+".pkl"
+            self.save_dataset(full_data, full_labels, TRAIN_SET_PATH)
+
         if eval_p == "intra":
             data, labels = self.generate_dataset(self.all_patients, choice, balance)
-            full_data = np.asarray(data)
-            #data=data[:,:,0]
-            full_labels = np.array(labels)
-            full_data, full_labels = self.shuffle(full_data, full_labels)
-
+            full_data, full_labels = self.process_dataset(data, labels)
             # mitdb/interpatient/train_static.pkl
-            TRAIN_SET_PATH = self.path+os.sep+eval_p+"patient"+os.sep+"train_"+choice+".pkl"
-            with open(TRAIN_SET_PATH, 'wb') as file:
-                pickle.dump({'data': full_data, 'labels': full_labels}, file)     
+            TRAIN_SET_PATH = path+os.sep+"train_"+choice+".pkl"
+            self.save_dataset(full_data, full_labels, TRAIN_SET_PATH)    
 
     def generate_val_set(self, eval_p, choice, balance=False):
         path = self.path+os.sep+eval_p+"patient"
@@ -394,15 +408,10 @@ class MITBIHARDataset():
         if eval_p == 'specific':
             for patient in self.specific_patients:
                 beats, labels = self.segment(patient, choice, 2.5, 5)
-                full_data = np.asarray(beats)
-                #data=data[:,:,0]
-                full_labels = np.array(labels)
-                full_data, full_labels = self.shuffle(full_data, full_labels)
-
+                full_data, full_labels = self.process_dataset(beats, labels)
                 # mitdb/specificpatient/val201_static.pkl
-                TRAIN_SET_PATH = self.path+os.sep+eval_p+"patient"+os.sep+"val"+patient+"_"+choice+".pkl"
-                with open(TRAIN_SET_PATH, 'wb') as file:
-                    pickle.dump({'data': full_data, 'labels': full_labels}, file)      
+                TRAIN_SET_PATH = path+os.sep+"val"+patient+"_"+choice+".pkl"
+                self.save_dataset(full_data, full_labels, TRAIN_SET_PATH) 
 
         if eval_p == 'inter':
             # do nothing for now
@@ -410,34 +419,33 @@ class MITBIHARDataset():
             print("not implemented")
 
     def generate_test_set(self, eval_p, choice, balance=False):
+        path = self.path+os.sep+eval_p+"patient"
+        if not os.path.exists(path):
+            os.makedirs(path)
         if eval_p == "specific":
             for patient in self.specific_patients:
                 beats, labels = self.segment(patient, choice, 5, -1)
-                full_data = np.asarray(beats)
-                #data=data[:,:,0]
-                full_labels = np.array(labels)
-                full_data, full_labels = self.shuffle(full_data, full_labels)
-
+                full_data, full_labels = self.process_dataset(beats, labels)
                 # mitdb/specificpatient/test201_static.pkl
-                TRAIN_SET_PATH = self.path+os.sep+eval_p+"patient"+os.sep+"test"+patient+"_"+choice+".pkl"
-                with open(TRAIN_SET_PATH, 'wb') as file:
-                    pickle.dump({'data': full_data, 'labels': full_labels}, file)  
+                TRAIN_SET_PATH = path+os.sep+"test"+patient+"_"+choice+".pkl"
+                self.save_dataset(full_data, full_labels, TRAIN_SET_PATH) 
+
         if eval_p == "inter":
             data, labels = self.generate_dataset(self.ds2_patients, choice, balance)
-            full_data = np.asarray(data)
-            #data=data[:,:,0]
-            full_labels = np.array(labels)
-            full_data, full_labels = self.shuffle(full_data, full_labels)
-
+            full_data, full_labels = self.process_dataset(data, labels)
             # mitdb/interpatient/test1_static.pkl
-            TRAIN_SET_PATH = self.path+os.sep+eval_p+"patient"+os.sep+"test1_"+choice+".pkl"
-            with open(TRAIN_SET_PATH, 'wb') as file:
-                pickle.dump({'data': full_data, 'labels': full_labels}, file) 
+            TRAIN_SET_PATH = path+os.sep+"test1_"+choice+".pkl"
+            self.save_dataset(full_data, full_labels, TRAIN_SET_PATH) 
         if eval_p == "intra":
             # in this case % train-test-split
             print("not implemented")
 
-    def read_dataset(self, eval_p, choice, dataset, crossval_id, balance=True):
+
+    def save_dataset(self, data, labels, path):
+        with open(path, 'wb') as file:
+            pickle.dump({'data': data, 'labels': labels}, file)  
+
+    def load_dataset(self, eval_p, choice, dataset, crossval_id, balance=True):
         # mitdb/interpatient/test1_static.pkl
 
         path = self.path + os.sep + eval_p + 'patient' + os.sep + dataset + crossval_id + "_" + choice+".pkl"
