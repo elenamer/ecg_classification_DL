@@ -42,7 +42,7 @@ class F1Metric(tf.keras.callbacks.Callback):
         ax1.set_ylabel('f1score')
         ax1.set_xlabel('epoch')
         ax1.legend(['train', 'validation'], loc='upper left')
-        fig1.savefig(self.root+'f1score.png', dpi=450)
+        fig1.savefig(self.root+os.sep+'f1score.png', dpi=450)
         plt.close(fig1)
         # summarize history for loss
         fig2, ax2 = plt.subplots()
@@ -52,6 +52,6 @@ class F1Metric(tf.keras.callbacks.Callback):
         ax2.set_ylabel('loss')
         ax2.set_xlabel('epoch')
         ax2.legend(['train', 'validation'], loc='upper left')
-        fig2.savefig(self.root+'loss.png', dpi=450)
+        fig2.savefig(self.root+os.sep+'loss.png', dpi=450)
         plt.close(fig2)
 
