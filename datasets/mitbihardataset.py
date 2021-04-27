@@ -363,7 +363,7 @@ class MITBIHARDataset():
         print(Counter(labels))
         labels = np.array(labels)
         full_data, full_labels = self.shuffle(data, labels)
-        full_labels = tf.keras.utils.to_categorical(full_labels, num_classes=len(self.classes))
+        #full_labels = tf.keras.utils.to_categorical(full_labels, num_classes=len(self.classes))
         return full_data, full_labels
 
 
@@ -407,7 +407,7 @@ class MITBIHARDataset():
             self.save_dataset(full_data, full_labels, TRAIN_SET_PATH)
 
         if eval_p == "intra":
-            data, labels = self.generate_dataset(self.all_patients, choice, balance)
+            data, labels = self.generate_dataset(self.patientids, choice, balance)
             full_data, full_labels = self.process_dataset(data, labels)
             # mitdb/interpatient/train_static.pkl
             TRAIN_SET_PATH = path+os.sep+"train_"+choice+".pkl"
