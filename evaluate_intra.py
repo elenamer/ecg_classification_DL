@@ -51,11 +51,15 @@ for i, (train_val_ind, test_ind) in enumerate(skf.split(dataset[0],dataset[1])):
 
     X_train, X_val, y_train, y_val = train_test_split(train_val[0], train_val[1], random_state=seed, shuffle=True, test_size=0.15)
 
+
+    X_train, y_train = dat.balance(X_train, y_train)
+    X_train, y_train = np.array(X_train), np.array(y_train)
+
     y_train = tf.keras.utils.to_categorical(y_train, num_classes=len(classes))
     y_val = tf.keras.utils.to_categorical(y_val, num_classes=len(classes))
     y_test = tf.keras.utils.to_categorical(y_test, num_classes=len(classes))
 
-    model = ResNet(num_outputs=num_classes, blocks=[1,1], filters=[32, 64], kernel_size=[15,15])
+    model = ResNet(num_outputs=num_classes, blocks=[1,1], filters=[32, 64], kernel_size=[15,15], dropout=0.2)
 
     inputs = tf.keras.layers.Input((200,1,), dtype='float32')
     m1 = tf.keras.Model(inputs=inputs, outputs=model.call(inputs))

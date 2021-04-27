@@ -332,7 +332,7 @@ class MITBIHARDataset():
         print(Counter(labels))
         labels = np.array(labels)
         data = np.array(data)
-        C0 = np.argwhere(labels == 'N').flatten()
+        C0 = np.argwhere(labels == 'N' or labels == 0).flatten()
         C0_subsampled = C0[0::10]
         C0 = np.setdiff1d(C0,C0_subsampled)
         print("N indices")
