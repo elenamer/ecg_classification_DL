@@ -151,8 +151,7 @@ class MITBIHARDataset():
         self.stringify_patientids()
 
         print(self.patientids)
-        #self.X =  # data
-        #self.y = 
+
 
     def get_patientids(self):
         with open(self.path+"RECORDS"+choice.upper()) as f:
@@ -357,13 +356,13 @@ class MITBIHARDataset():
 
         #data=data[:,:,0]
         #full_labels = np.array(labels)
-        print(len(labels))
-        le = preprocessing.LabelEncoder()
-        le.fit(self.classes)
-        print(list(le.classes_))
-        labels = le.transform(labels)
+        cl_dict = {}
+        for i, cl in  enumerate(self.classes):
+            cl_dict[cl] = i
+        labels = [cl_dict[l] for l in labels]
+        print(Counter(labels))
+        labels = np.array(labels)
         full_data, full_labels = self.shuffle(data, labels)
-
         full_labels = tf.keras.utils.to_categorical(full_labels, num_classes=len(self.classes))
         return full_data, full_labels
 
