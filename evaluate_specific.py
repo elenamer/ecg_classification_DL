@@ -10,7 +10,8 @@ from sklearn.metrics import confusion_matrix
 import pickle
 
 
-classes = "rhythm"
+#classes = "rhythm"
+classes = ["N", "S", "V", "F", "Q"]
 
 num_classes = 5
 
@@ -24,9 +25,10 @@ dat = MITBIHARDataset(db_name)
 dat.generate_train_set(eval_p,choice,True)
 dat.generate_val_set(eval_p,choice,False)
 dat.generate_test_set(eval_p,choice,False)
+
 for patient_id in dat.specific_patients:
 	# experiments/mitdb/static/specificpatient/201/models/"
-	exp_path = "experiments"+os.sep+db_name+os.sep+choice+os.sep+eval_p+"patient"+os.sep+patient_id
+	exp_path = "experiments-dp"+os.sep+db_name+os.sep+choice+os.sep+eval_p+"patient"+os.sep+patient_id
 	if not os.path.exists(exp_path):
     		os.makedirs(exp_path)
     		os.mkdir(exp_path+os.sep+"models")
@@ -63,7 +65,7 @@ for patient_id in dat.specific_patients:
 	validation_generator = DataGenerator(partition['validation'], labels, **params)
 	'''
 
-	model = ResNet(num_outputs=num_classes, blocks=[1,1], filters=[32, 64], kernel_size=[15,15])
+	model = ResNet(num_outputs=num_classes, blocks=[1,1], filters=[32, 64], kernel_size=[15,15], dropout=0.4)
 
 
 	inputs = tf.keras.layers.Input((200,1,), dtype='float32')
@@ -71,7 +73,7 @@ for patient_id in dat.specific_patients:
 
 
 	#m1.summary()
-	opt = tf.keras.optimizers.Adam(lr=0.00001)
+	opt = tf.keras.optimizers.Adam(lr=0.0001)
 
 	m1.compile(optimizer=opt,
                 #tf.keras.optimizers.Adam(beta_1=0.9, beta_2=0.98, epsilon=1e-9),
@@ -96,7 +98,7 @@ for patient_id in dat.specific_patients:
 	output = open(exp_path+os.sep+'CM_val.pkl', 'wb')
 	pickle.dump(cm, output)
 	output.close()
-
+    
 '''
 # initialize the weights of the model
 input_shape, _ = tf.compat.v1.data.get_output_shapes(train_data)

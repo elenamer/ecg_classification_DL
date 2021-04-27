@@ -8,6 +8,8 @@ def batch_norm():
 def relu():
     return tf.keras.layers.ReLU()
 
+def dropout(dp=0):
+    return tf.keras.layers.Dropout(dp)
 
 def conv1d(filters, kernel_size=3, strides=1):
     return tf.keras.layers.Conv1D(
@@ -16,20 +18,23 @@ def conv1d(filters, kernel_size=3, strides=1):
 
 
 class ResidualBlock(tf.keras.layers.Layer):
-    def __init__(self, filters, kernel_size=3, strides=1, **kwargs):
+    def __init__(self, filters, kernel_size=3, strides=1, dropout = 0, **kwargs):
         super().__init__(**kwargs)
         self.filters = filters
         self.kernel_size = kernel_size
         self.strides = strides
+        self.dropout = dropout
 
     def build(self, input_shape):
         num_chan = input_shape[-1]
         self.conv1 = conv1d(self.filters, self.kernel_size, self.strides)
         self.bn1 = batch_norm()
         self.relu1 = relu()
+        self.dropout1 = dropout(self.dropout)
         self.conv2 = conv1d(self.filters, self.kernel_size, 1)
         self.bn2 = batch_norm()
         self.relu2 = relu()
+        self.dropout2 = dropout(self.dropout)
         if num_chan != self.filters or self.strides > 1:
             self.proj_conv = conv1d(self.filters, 1, self.strides)
             self.proj_bn = batch_norm()
@@ -99,7 +104,7 @@ class BottleneckBlock(tf.keras.layers.Layer):
 class ResNet(tf.keras.Model):
     def __init__(self, num_outputs=1, blocks=(2, 2, 2, 2),
                  filters=(64, 128, 256, 512), kernel_size=(3, 3, 3, 3),
-                 block_fn=ResidualBlock, include_top=True, **kwargs):
+                 block_fn=ResidualBlock, include_top=True, dropout = 0, **kwargs):
         super().__init__(**kwargs)
         self.conv1 = conv1d(64, 7, 2)
         self.bn1 = batch_norm()
@@ -109,7 +114,7 @@ class ResNet(tf.keras.Model):
         for stage, num_blocks in enumerate(blocks):
             for block in range(num_blocks):
                 strides = 2 if block == 0 and stage > 0 else 1
-                res_block = block_fn(filters[stage], kernel_size[stage], strides)
+                res_block = block_fn(filters[stage], kernel_size[stage], strides, dropout)
                 self.blocks.append(res_block)
         self.include_top = include_top
         if include_top:
