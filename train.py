@@ -21,9 +21,9 @@ eval_p = "specific"
 dat = MITBIHARDataset(db_name)
 
 ## Warning: for now balance = True and False are treated the same and saved to same files (i.e. overwritten)
-#dat.generate_train_set(eval_p,choice,True)
-#dat.generate_val_set(eval_p,choice,False)
-#dat.generate_test_set(eval_p,choice,False)
+dat.generate_train_set(eval_p,choice,True)
+dat.generate_val_set(eval_p,choice,False)
+dat.generate_test_set(eval_p,choice,False)
 for patient_id in dat.specific_patients:
 	# experiments/mitdb/static/specificpatient/201/models/"
 	exp_path = "experiments"+os.sep+db_name+os.sep+choice+os.sep+eval_p+"patient"+os.sep+patient_id
@@ -63,7 +63,7 @@ for patient_id in dat.specific_patients:
 	validation_generator = DataGenerator(partition['validation'], labels, **params)
 	'''
 
-	model = ResNet(num_outputs=num_classes, blocks=[2,2], filters=[32, 64], kernel_size=[15,15])
+	model = ResNet(num_outputs=num_classes, blocks=[1,1], filters=[32, 64], kernel_size=[15,15])
 
 
 	inputs = tf.keras.layers.Input((200,1,), dtype='float32')
@@ -71,7 +71,7 @@ for patient_id in dat.specific_patients:
 
 
 	#m1.summary()
-	opt = tf.keras.optimizers.Adam(lr=0.0001)
+	opt = tf.keras.optimizers.Adam(lr=0.00001)
 
 	m1.compile(optimizer=opt,
                 #tf.keras.optimizers.Adam(beta_1=0.9, beta_2=0.98, epsilon=1e-9),
@@ -88,6 +88,12 @@ for patient_id in dat.specific_patients:
 	y_pred = m1.predict(test[0])
 	cm = confusion_matrix(test[1].argmax(axis=1), y_pred.argmax(axis=1),labels=range(num_classes))
 	output = open(exp_path+os.sep+'CM_test.pkl', 'wb')
+	pickle.dump(cm, output)
+	output.close()
+
+	y_pred = m1.predict(val[0])
+	cm = confusion_matrix(val[1].argmax(axis=1), y_pred.argmax(axis=1),labels=range(num_classes))
+	output = open(exp_path+os.sep+'CM_val.pkl', 'wb')
 	pickle.dump(cm, output)
 	output.close()
 
