@@ -169,7 +169,8 @@ class MITBIHARDataset():
         self.specific_patients = [str(id) for id in self.specific_patients]
 
         # for inter-patient
-        self.ds1_patients = [str(id) for id in self.ds1_patients]
+        self.ds1_patients_train = [str(id) for id in self.ds1_patients_train]
+        self.ds1_patients_val = [str(id) for id in self.ds1_patients_val]
         self.ds2_patients = [str(id) for id in self.ds2_patients]
 
 
