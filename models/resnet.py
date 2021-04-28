@@ -34,7 +34,7 @@ class ResidualBlock(tf.keras.layers.Layer):
         self.conv2 = conv1d(self.filters, self.kernel_size, 1)
         self.bn2 = batch_norm()
         self.relu2 = relu()
-        self.dropout2 = dropout(self.dropout)
+        #self.dropout2 = dropout(self.dropout)
         if num_chan != self.filters or self.strides > 1:
             self.proj_conv = conv1d(self.filters, 1, self.strides)
             self.proj_bn = batch_norm()
@@ -51,9 +51,11 @@ class ResidualBlock(tf.keras.layers.Layer):
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu1(x)
+        x = self.dropout1(x)
         x = self.conv2(x)
         x = self.bn2(x)
         x = self.relu2(x + shortcut)
+        #x = self.dropout2(x + shortcut)
         return x
 
 
