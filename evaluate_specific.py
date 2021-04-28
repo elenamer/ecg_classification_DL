@@ -22,9 +22,9 @@ eval_p = "specific"
 dat = MITBIHARDataset(db_name)
 
 ## Warning: for now balance = True and False are treated the same and saved to same files (i.e. overwritten)
-dat.generate_train_set(eval_p,choice,True)
-dat.generate_val_set(eval_p,choice,False)
-dat.generate_test_set(eval_p,choice,False)
+#dat.generate_train_set(eval_p,choice,True)
+#dat.generate_val_set(eval_p,choice,False)
+#dat.generate_test_set(eval_p,choice,False)
 
 for patient_id in dat.specific_patients:
 	# experiments/mitdb/static/specificpatient/201/models/"
@@ -65,7 +65,12 @@ for patient_id in dat.specific_patients:
 	validation_generator = DataGenerator(partition['validation'], labels, **params)
 	'''
 
-	model = ResNet(num_outputs=num_classes, blocks=[1,1], filters=[32, 64], kernel_size=[15,15], dropout=0.4)
+	train = (train[0], tf.keras.utils.to_categorical(train[1], num_classes=len(classes)))
+	val = (val[0] , tf.keras.utils.to_categorical(val[1], num_classes=len(classes)))
+	test = (test[0], tf.keras.utils.to_categorical(test[1], num_classes=len(classes)))
+
+
+	model = ResNet(num_outputs=num_classes, blocks=[1,1], filters=[32, 64], kernel_size=[15,15], dropout=0.1)
 
 
 	inputs = tf.keras.layers.Input((200,1,), dtype='float32')
@@ -81,7 +86,7 @@ for patient_id in dat.specific_patients:
                 loss='categorical_crossentropy',
                 metrics='acc')
 
-	es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=6)
+	es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=4)
 	log_f1 = F1Metric(train=train,validation=val, path=exp_path+os.sep+"models")
 
 	m1.fit(x=train[0],y=train[1], validation_data = val, callbacks = [es, log_f1], epochs = 100)
