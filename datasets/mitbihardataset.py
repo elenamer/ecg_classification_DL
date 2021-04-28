@@ -24,7 +24,7 @@ results_path = "./data_overviews"
 
 aami_annots_list=['N','L','R','e','j','S','A','a','J','V','E','F','/','f','Q']
 
-WFDB = "/usr/local/bin"#/home/elena/wfdb/bin"
+WFDB = "/home/elena/wfdb/bin"#"/usr/local/bin"
 
 
 N_SAMPLES_BEFORE_R_static=100
@@ -71,8 +71,7 @@ def segment_beats(choice, ann, signal, beat_len, start_minute, end_minute, fs):
         end_ind = np.argmax(ann[:,1] >= end_sample)
 
     skipped=0
-    next_ind=0
-
+    next_ind=start_ind
     print("Start index:")
     print(start_ind)
     print("End index:")
@@ -319,7 +318,7 @@ class MITBIHARDataset():
     def generate_dataset(self,records, choice, balance):
         full_data = []
         full_labels = []
-        for patient in self.common_patients:
+        for patient in records:
             beats, labels = self.segment(patient, choice, 0, -1) 
             full_data.extend(beats)
             full_labels.extend(labels)
