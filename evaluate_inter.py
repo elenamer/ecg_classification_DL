@@ -26,20 +26,14 @@ eval_p = "inter"
 dat = MITBIHARDataset(db_name)
 
 ## Warning: for now balance = True and False are treated the same and saved to same files (i.e. overwritten)
-dat.generate_train_set(eval_p,choice,True)
-dat.generate_test_set(eval_p,choice,True)
+dat.generate_train_set(eval_p,choice,True,full=False)
+dat.generate_test_set(eval_p,choice,False)
+dat.generate_val_set(eval_p,choice,False)
 
 
-train = dat.load_dataset(eval_p,choice, 'train', '' )
-test = dat.load_dataset(eval_p,choice, 'test', '' )
-
-
-if len(dataset) != 2:
-    print("generate crossval splits")
-    # we need to do random n-crossval splits for val and test
-
-#skf = StratifiedKFold(n_splits=10)
-#for i, (train_val_ind, test_ind) in enumerate(skf.split(dataset[0],dataset[1])):
+train = dat.load_dataset(eval_p,choice, 'train', '1' )
+val = dat.load_dataset(eval_p,choice, 'val', '1' )
+test = dat.load_dataset(eval_p,choice, 'test', '1' )
 
 # experiments/mitdb/static/specificpatient/201/models/"
 exp_path = "experiments"+os.sep+db_name+os.sep+choice+os.sep+eval_p+"patient"#+os.sep+str(i)
@@ -51,14 +45,16 @@ if not os.path.exists(exp_path):
 X_test = test[0]
 y_test = test[1]
 
-
-X_train, X_val, y_train, y_val = train_test_split(train[0], train[1], random_state=seed, shuffle=True, test_size=0.15)
+if len(val)!=2:
+    X_train, X_val, y_train, y_val = train_test_split(train[0], train[1], random_state=seed, shuffle=True, test_size=0.15)
+else:
+    X_train, X_val, y_train, y_val = train[0], train[1], val[0], val[1]
 
 y_train = tf.keras.utils.to_categorical(y_train, num_classes=len(classes))
 y_val = tf.keras.utils.to_categorical(y_val, num_classes=len(classes))
 y_test = tf.keras.utils.to_categorical(y_test, num_classes=len(classes))
 
-model = ResNet(num_outputs=num_classes, blocks=[1,1], filters=[32, 64], kernel_size=[15,15])
+model = ResNet(num_outputs=num_classes, blocks=[1,1], filters=[32, 64], kernel_size=[15,15], dropout=0.1)
 
 inputs = tf.keras.layers.Input((200,1,), dtype='float32')
 m1 = tf.keras.Model(inputs=inputs, outputs=model.call(inputs))

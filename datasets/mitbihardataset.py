@@ -144,8 +144,10 @@ class MITBIHARDataset():
         self.specific_patients = [201,203,205,207,208,209,215,220,223,230,200,202,210,212,213,214,219,221,222,228,231,232,233,234]
 
         # for inter-patient
-        self.ds1_patients = [101,106,108,109,112,114,115,116,118,119,122,124,201,203,205,207,208,209,215,220,223,230]
+        self.ds1_patients_train = [106,108,109,112,115,116,118,119,122,124,201,203,205,207,208,209,215,220,230]
+        self.ds1_patients_val = [101,114,223] 
         self.ds2_patients = [100,103,105,111,113,117,121,123,200,202,210,212,213,214,219,221,222,228,231,232,233,234]
+
 
         self.stringify_patientids()
 
@@ -367,7 +369,7 @@ class MITBIHARDataset():
         return full_data, full_labels
 
 
-    def generate_train_set(self, eval_p, choice, balance):
+    def generate_train_set(self, eval_p, choice, balance, full=False):
         # for patient in patients(train):
         #     self.segment(idx) -> full
         # if intra:
@@ -400,7 +402,11 @@ class MITBIHARDataset():
                 self.save_dataset(full_data, full_labels, TRAIN_SET_PATH)
 
         if eval_p == "inter":
-            data, labels = self.generate_dataset(self.ds1_patients, choice, balance)
+            if full:
+                patients = self.ds1_patients_train+self.ds1_patients_val
+            else:
+                patients = self.ds1_patients_train
+            data, labels = self.generate_dataset(patients, choice, balance)
             full_data, full_labels = self.process_dataset(data, labels)
             # mitdb/interpatient/train1_static.pkl
             TRAIN_SET_PATH = path+os.sep+"train1_"+choice+".pkl"
@@ -425,10 +431,12 @@ class MITBIHARDataset():
                 TRAIN_SET_PATH = path+os.sep+"val"+patient+"_"+choice+".pkl"
                 self.save_dataset(full_data, full_labels, TRAIN_SET_PATH) 
 
-        if eval_p == 'inter':
-            # do nothing for now
-            # in this case % train-test-split
-            print("not implemented")
+        if eval_p == "inter":
+            data, labels = self.generate_dataset(self.ds1_patients_val, choice, balance)
+            full_data, full_labels = self.process_dataset(data, labels)
+            # mitdb/interpatient/test1_static.pkl
+            TRAIN_SET_PATH = path+os.sep+"val1_"+choice+".pkl"
+            self.save_dataset(full_data, full_labels, TRAIN_SET_PATH) 
 
     def generate_test_set(self, eval_p, choice, balance=False):
         path = self.path+os.sep+eval_p+"patient"
