@@ -26,7 +26,7 @@ eval_p = "intra"
 dat = MITBIHARDataset(db_name)
 
 ## Warning: for now balance = True and False are treated the same and saved to same files (i.e. overwritten)
-#dat.generate_train_set(eval_p,choice,True)
+dat.generate_train_set(eval_p,choice,False)
 
 
 dataset = dat.load_dataset(eval_p,choice, 'train', '' )

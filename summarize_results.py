@@ -22,13 +22,13 @@ results_path = args.path
 
 classes = ["N","S","V","F","Q"]
 
-metrics = ["ACC","PPV","TPR","F1","support"]
-experiments = ["specific"]
+metrics = ["ACC","TNR", "PPV","TPR","F1","support"]
+experiments = ["specific", "intra","inter"]
 patients = {"specific":[201,203,205,207,208,209,215,220,223,230,200,202,210,212,213,214,219,221,222,228,231,232,233,234],
-"inter": ['1'],
+"inter": [''],
 "intra": [0,1,2,3,4,5,6,7,8,9]
 }
-segmentations = ["static"]#,"incartdb","svdb","edb"]#,"incartdb","svdb","edb"]#,'birnn'] # "birnn", "deeptransf"
+segmentations = ["static", "dynamic"]#,"incartdb","svdb","edb"]#,"incartdb","svdb","edb"]#,'birnn'] # "birnn", "deeptransf"
 models = sorted(os.listdir(results_path))
 
 models = [
@@ -68,7 +68,7 @@ def evaluate_metrics(confusion_matrix):
 
     ACC_macro = np.mean(
         ACC)  # to get a sense of effectiveness of our method on the small classes we computed this average (macro-average)
-    results_dict = {"ACC_macro":ACC_macro, "ACC":ACC, "TPR":TPR, "TNR":TNR, "PPV":PPV}
+    results_dict = {"ACC_macro":ACC_macro, "ACC":ACC, "TPR":TPR, "TNR":TNR, "PPV":PPV }
     return ACC, TPR, TNR, PPV, F1, support
 
 '''
@@ -131,7 +131,10 @@ for model in models:
             for patient in patients[evaluation_method]:
                 patient = str(patient)
                 try:
-                    cm_path = os.path.join(results_path, segmentation_method, evaluation_method+"patient" , patient, "CM_"+model+".pkl")
+                    if patient=='':
+                        cm_path = os.path.join(results_path, segmentation_method, evaluation_method+"patient" , "CM_"+model+".pkl")
+                    else:
+                        cm_path = os.path.join(results_path, segmentation_method, evaluation_method+"patient" , patient, "CM_"+model+".pkl")
                     print(cm_path)
                     with open(cm_path, "rb") as f:
                         #print(os.path.join(results_path, model, "results-"+evaluation_method+"patient"+patient, "CM_"+segmentation_method+".pkl"))
@@ -155,7 +158,7 @@ for model in models:
             # support.append(sup)
             if skip:
                 continue
-            metric_results = {"ACC":acc, "TPR": sensitivity, "PPV":ppv,"F1":f1, "support":sup}
+            metric_results = {"ACC":acc, "TPR": sensitivity, "PPV":ppv, "TNR":specificity, "F1":f1, "support":sup}
             #print(ACC)
             for metric in metrics:
             #print(name)
@@ -167,23 +170,25 @@ for model in models:
                 #df.loc["min"]=df1.min()
                 #df.loc["max"]=df1.max() 
                 #print(df)
-                for cl in classes:   
+                agg_metric = 0
+                for i,cl in enumerate(classes):   
                     mean = df.loc['mean',cl]
                     #std = df.loc['std',cl]
                     #mmin = df.loc['min',cl]
                     #mmax = df.loc['max',cl]
                     #print(mean)
                     results[evaluation_method].loc[(model, segmentation_method),(cl, metric,"mean")] = mean
+                    agg_metric += mean * metric_results["support"][i] / np.sum(metric_results["support"])
                     #results[evaluation_method].loc[(model, segmentation_method),(cl, metric,"std")] = std
                     #results[evaluation_method].loc[(model, segmentation_method),(cl, metric,"min")] = mmin
                     #results[evaluation_method].loc[(model, segmentation_method),(cl, metric,"max")] = mmax
-                results[evaluation_method].loc[(model, segmentation_method),("All", metric,"mean")] = np.mean(df.loc['mean'], axis=0)
+                results[evaluation_method].loc[(model, segmentation_method),("All", metric,"mean")] = agg_metric
                 #results[evaluation_method].loc[(model, segmentation_method),("All", metric,"std")] = np.mean(df.loc['std'], axis=0)
                 #results[evaluation_method].loc[(model, segmentation_method),("All", metric,"min")] = np.mean(df.loc['min'], axis=0)
                 #results[evaluation_method].loc[(model, segmentation_method),("All", metric,"max")] = np.mean(df.loc['max'], axis=0)
 for evaluation_method in experiments:
     print(evaluation_method)
-    results[evaluation_method] = results[evaluation_method].round(5)
+    results[evaluation_method] = results[evaluation_method].round(4)
     print(results[evaluation_method])
     results[evaluation_method].to_csv(os.path.join(results_path, "summary_"+evaluation_method+".csv"))
 # remove macro file

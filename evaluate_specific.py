@@ -4,6 +4,7 @@ from datasets.ptbxldataset import PTBXLDataset
 from datasets.arr10000dataset import Arr10000Dataset
 #from datasets.datagenerator import DataGenerator
 from datasets.mitbihardataset import MITBIHARDataset
+from datasets.savvydataset import SavvyDataset
 import tensorflow as tf
 import os
 from sklearn.metrics import confusion_matrix
@@ -15,16 +16,16 @@ classes = ["N", "S", "V", "F", "Q"]
 
 num_classes = 5
 
-db_name = "mitdb"
+db_name = "savvydb"
 choice = "static"
 eval_p = "specific"
 
-dat = MITBIHARDataset(db_name)
+dat = SavvyDataset(db_name)
 
 ## Warning: for now balance = True and False are treated the same and saved to same files (i.e. overwritten)
-#dat.generate_train_set(eval_p,choice,True)
-#dat.generate_val_set(eval_p,choice,False)
-#dat.generate_test_set(eval_p,choice,False)
+dat.generate_train_set(eval_p,choice,True)
+dat.generate_val_set(eval_p,choice,False)
+dat.generate_test_set(eval_p,choice,False)
 
 for patient_id in dat.specific_patients:
 	# experiments/mitdb/static/specificpatient/201/models/"
