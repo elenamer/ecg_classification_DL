@@ -1,6 +1,7 @@
 #x:(n_samples, beat_length)
 #y:(n_samples)
 
+from datasets.dataset import Dataset
 import os
 import pickle
 import numpy as np
@@ -89,11 +90,13 @@ def segment_beats(choice, ann, signal, beat_len, start_minute, end_minute, fs):
     labels=[]
     #plt.plot(signal)
     #plt.show()
+    all_labls = []
 
     for annotation in ann[start_ind:end_ind]:
         rPeak=annotation[1] 
         label=annotation[2]
         next_ind+=1
+        all_labls.append(label)
         #print(label)
         #print(rPeak)
         if not np.isin(label,BEAT_ANNOTATIONS):
@@ -134,14 +137,20 @@ def segment_beats(choice, ann, signal, beat_len, start_minute, end_minute, fs):
     print(len(labels))
     print(len(data[0]))
     print(labels)
+    print("All labels")
+    print(Counter(all_labls))
     return data, labels
     #print(len(item)-len(seg_values))
 
 
-class PhysionetDataset():
+class PhysionetDataset(Dataset):
 
     def __init__(self, name): ## classes, segmentation, selected channel
+        
+        super(PhysionetDataset, self).__init__()
+
         self.name = name
+
         self.path = "./data/"+name+"/"
         self.common_path = "./data/"+name+"/"
         self.patientids = self.get_patientids()
@@ -164,6 +173,48 @@ class PhysionetDataset():
     TO DO ELENA: 
         use wfdb python to extrct annotation and wave
     '''
+
+    def get_class_distributions(self):
+        print(self.patientids)
+        print(self.rhythmic_classes)
+        print(self.morphological_classes)
+        mydict_labels = {}
+        mydict_rhythms = {}
+        labels=[]
+        rhythms=[]
+        for id in self.patientids:
+            #print(id)
+            ann=self.extract_annotation(self.path, id)
+            ann=np.array(ann)
+            #print(ann[0])
+            annot=ann[:,2]
+            annot = [a for a in annot if a in self.morphological_classes.keys()]
+            unique_labels = Counter(annot)
+
+            rhythm_labels = ann[:,6]
+            #print(rhythm_labels)
+            rhythm_labels = [l for l in rhythm_labels if l in self.rhythmic_classes.keys()]
+
+            unique_rhythm = Counter(rhythm_labels)
+            #unique_labels.update(unique_rhythm)
+            ind_seg=0
+            mydict_labels[id]=unique_labels
+            mydict_rhythms[id]=unique_rhythm
+            #print(mydict_rhythms)
+            labels+=list(unique_labels.keys())
+            rhythms+=list(unique_rhythm.keys())
+        labels=set(labels)
+        rhythms=set(rhythms)
+        results_df_lab=pd.DataFrame.from_dict(mydict_labels, orient='index')
+        results_df_rhy=pd.DataFrame.from_dict(mydict_rhythms, orient='index')
+        results_df_lab.loc['all',:] = results_df_lab.sum()
+        #results_df_lab.to_csv(results_path+os.sep+self.name+"_morphological_distribution.csv")
+
+        results_df_rhy.loc['all',:] = results_df_rhy.sum()
+        #results_df_rhy.to_csv(results_path+os.sep+self.name+"_rhythmic_distribution.csv")
+
+        return results_df_lab.loc['all',:], results_df_rhy.loc['all',:]
+
 
     def extract_metadata(self, path, idx):
         infoName=path+os.sep+idx+'.hea'
@@ -218,6 +269,7 @@ class PhysionetDataset():
         for l in labels:
             sec_ind = 2 if l[1][-1]==']' else 1
             new_labels.append((l[0], int(l[sec_ind]), l[sec_ind+1], l[sec_ind+2], l[sec_ind+3], l[sec_ind+4], l[sec_ind+5] if len(l) == sec_ind+6 else None))
+        print(len(new_labels))
         #print(len(labels))
         return new_labels
 
@@ -240,7 +292,8 @@ class PhysionetDataset():
         labels=[]
         rhythms=[]
         for id in self.patientids:
-            ann=self.extract_annotation(id)
+            print(id)
+            ann=self.extract_annotation(self.path, id)
             ann=np.array(ann)
             print(ann[0])
             annot=ann[:,2]
@@ -251,10 +304,10 @@ class PhysionetDataset():
 
                 ##
                 print(ann)
-                record = wfdb.rdrecord(self.path+id)
-                ann1 = wfdb.rdann(self.path+id, 'atr')
+                #record = wfdb.rdrecord(self.path+id)
+                #ann1 = wfdb.rdann(self.path+id, 'atr')
 
-                wfdb.plot_wfdb(record=record, annotation=ann1, title='MIT-BIH Record '+id)
+                #wfdb.plot_wfdb(record=record, annotation=ann1, title='MIT-BIH Record '+id)
             #print(ann[0])
             unique_labels = Counter(annot)
 

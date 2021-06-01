@@ -5,4 +5,7 @@ from .irhythmtestdataset import iRhythmTestDataset
 from .cpsc2018dataset import CPSC2018Dataset
 from .arr10000dataset import Arr10000Dataset
 from .mitbihardataset import MITBIHARDataset
+from .longtermafdataset import LongTermAFDataset
 from .savvydataset import SavvyDataset
+from .incartdataset import INCARTDataset
+from .mitbihafdataset import AFDataset

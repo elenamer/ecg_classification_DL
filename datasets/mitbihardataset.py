@@ -28,7 +28,9 @@ aami_annots_list=['N','L','R','e','j','S','A','a','J','V','E','F','/','f','Q']
 
 class MITBIHARDataset(PhysionetDataset):
 
-    def __init__(self, name): ## classes, segmentation, selected channel
+    def __init__(self): ## classes, segmentation, selected channel
+        name = 'mitdb'
+        self.name = name
         super(MITBIHARDataset, self).__init__(name)
 
         self.classes = ["N", "S", "V", "F", "Q"]
