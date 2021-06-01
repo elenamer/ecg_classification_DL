@@ -183,6 +183,7 @@ def compute_label_aggregations(df, folder, ctype):
                 if key in diag_agg_df.index:
                     tmp.append(key)
             return list(set(tmp))
+            
 
         def aggregate_subdiagnostic(y_dic):
             tmp = []
@@ -212,36 +213,33 @@ def compute_label_aggregations(df, folder, ctype):
         elif ctype == 'superdiagnostic':
             df['superdiagnostic'] = df.scp_codes.apply(aggregate_diagnostic)
             df['superdiagnostic_len'] = df.superdiagnostic.apply(lambda x: len(x))
-    elif ctype == 'form':
-        form_agg_df = aggregation_df[aggregation_df.form == 1.0]
+    form_agg_df = aggregation_df[aggregation_df.form == 1.0]
 
-        def aggregate_form(y_dic):
-            tmp = []
-            for key in y_dic.keys():
-                if key in form_agg_df.index:
-                    c = key
-                    if str(c) != 'nan':
-                        tmp.append(c)
-            return list(set(tmp))
+    def aggregate_form(y_dic):
+        tmp = []
+        for key in y_dic.keys():
+            if key in form_agg_df.index:
+                c = key
+                if str(c) != 'nan':
+                    tmp.append(c)
+        return list(set(tmp))
 
-        df['form'] = df.scp_codes.apply(aggregate_form)
-        df['form_len'] = df.form.apply(lambda x: len(x))
-    elif ctype == 'rhythm':
-        rhythm_agg_df = aggregation_df[aggregation_df.rhythm == 1.0]
+    df['form'] = df.scp_codes.apply(aggregate_form)
+    df['form_len'] = df.form.apply(lambda x: len(x))
 
-        def aggregate_rhythm(y_dic):
-            tmp = []
-            for key in y_dic.keys():
-                if key in rhythm_agg_df.index:
-                    c = key
-                    if str(c) != 'nan':
-                        tmp.append(c)
-            return list(set(tmp))
+    rhythm_agg_df = aggregation_df[aggregation_df.rhythm == 1.0]
 
-        df['rhythm'] = df.scp_codes.apply(aggregate_rhythm)
-        df['rhythm_len'] = df.rhythm.apply(lambda x: len(x))
-    elif ctype == 'all':
-        df['all_scp'] = df.scp_codes.apply(lambda x: list(set(x.keys())))
+    def aggregate_rhythm(y_dic):
+        tmp = []
+        for key in y_dic.keys():
+            if key in rhythm_agg_df.index:
+                c = key
+                if str(c) != 'nan':
+                    tmp.append(c)
+        return list(set(tmp))
+
+    df['rhythm'] = df.scp_codes.apply(aggregate_rhythm)
+    df['rhythm_len'] = df.rhythm.apply(lambda x: len(x))
 
     return df
 

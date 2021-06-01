@@ -1,6 +1,7 @@
 #x:(n_samples, beat_length)
 #y:(n_samples)
 
+from datasets.dataset import Dataset
 import os
 import pickle
 import numpy as np
@@ -51,15 +52,16 @@ initial_classes_dict = {
 
 }
 
-class PTBXLDataset():
+class PTBXLDataset(Dataset):
 
-    def __init__(self, classes): ## classes, segmentation, selected channel
+    def __init__(self): ## classes, segmentation, selected channel
         self.name = 'ptb-xl'
+        super(PTBXLDataset, self).__init__()
         self.path = "./data/"+self.name+"/"
         self.num_channels = 12
         self.patientids = self.get_patientids()
-        self.classes=classes
-        self.classes_dict = initial_classes_dict[classes]
+        self.classes='rhythm'
+        #self.classes_dict = initial_classes_dict[classes]
         #print(self.patientids)
             #patientids = [os.path.split(id)[-1] for id in patientids]		
 
@@ -87,6 +89,70 @@ class PTBXLDataset():
         data = np.fromstring(output, dtype=np.int32, sep=' ')
         return data.reshape((-1, self.num_channels+1))
     
+    def get_class_distributions(self):
+        #print(self.patientids)
+
+        self.data, self.raw_labels = load_dataset(self.path, sampling_rate)
+        # Preprocess label data
+        self.labels = compute_label_aggregations(self.raw_labels, self.path, self.classes)
+        self.data, self.labels, self.Y, _ = select_data(self.data, self.labels, self.classes, 0, self.path+'exprs/data/')
+
+
+        # # load and convert annotation data
+        # if self.classes == "rhythm" or self.classes == "form":
+        Y = self.labels #pd.read_csv(self.path+os.sep+'ptbxl_database.csv', index_col='ecg_id')
+        # else:
+        #Y = pd.read_csv(self.path+os.sep+'ptbxl_database.csv', index_col='ecg_id')
+        #Y.scp_codes = Y.scp_codes.apply(lambda x: ast.literal_eval(x))
+        print(Y)
+        #print(Y.scp_codes)
+        # Load raw signal data
+        #X = self.load_raw_data(Y, sampling_rate)
+
+
+        # Load scp_statements.csv for diagnostic aggregation
+        agg_df = pd.read_csv(self.path+os.sep+'scp_statements.csv', index_col=0)
+        agg_df = agg_df[agg_df.diagnostic == 1]
+
+
+        def aggregate_diagnostic(y_dic):
+            tmp = []
+            for key in y_dic.keys():
+                if key in agg_df.index:
+                    tmp.append(agg_df.loc[key].diagnostic_class)
+            return list(set(tmp))
+
+        # Apply diagnostic superclass
+        #Y['diagnostic_superclass'] = Y.scp_codes.apply(aggregate_diagnostic)
+        #print(Y.scp_codes)
+
+        mydict_labels = {}
+        mydict_rhythms = {}
+        labels=[]
+        rhythms=[]
+
+        count=0
+        for ind, row in Y.iterrows():
+            #if self.classes == 'aami':  
+            labls = [l for l in row.scp_codes.keys() if l in self.morphological_classes.keys()] 
+            rhytms = [l for l in row.rhythm if l in self.rhythmic_classes.keys()] 
+            #print(row.scp_codes.keys())
+            print(row.rhythm)
+            # elif self.classes == 'form':
+            #     labls = row.form
+            # elif self.classes == 'rhythm':
+            #     labls = row.rhythm
+            #print(labls)
+            labels+=list(labls)
+            rhythms+=list(rhytms)
+        #print(labels)
+        mydict_labels = Counter(labels)
+        mydict_rhythm = Counter(rhythms)
+        results_df_rhy = pd.DataFrame.from_dict({"all":mydict_rhythm}, orient='index')
+        results_df_lab = pd.DataFrame.from_dict({"all":mydict_labels}, orient='index')
+        #results_df.to_csv(results_path+os.sep+"ptbxl_distribution_"+self.classes+".csv")
+        return results_df_lab.loc["all",:], results_df_rhy.loc["all",:]
+
     def examine_database(self):
         #print(self.patientids)
         mydict_labels = {}
