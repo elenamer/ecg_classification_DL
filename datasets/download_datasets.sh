@@ -53,9 +53,12 @@ root="../data"
 # rm "${root}/arr10000/ECGData.zip"
 
 
-# wget -r -N -c -np --directory-prefix="${root}/cinc2017" "https://physionet.org/content/challenge-2017/1.0.0/training2017.zip"
-# wget -r -N -c -np --directory-prefix="${root}/cinc2017" "https://physionet.org/content/challenge-2017/1.0.0/REFERENCE-v3.csv"
-# mv "${root}/cinc2017/physionet.org/content/challenge-2017/1.0.0"/* "${root}/cinc2017"
+#wget -r -N -c -np --directory-prefix="${root}/cinc2017" https://physionet.org/files/challenge-2017/1.0.0/training2017.zip?download
+#wget -r -N -c -np --directory-prefix="${root}/cinc2017" https://physionet.org/files/challenge-2017/1.0.0/REFERENCE-v3.csv?download
+# mv "${root}/cinc2017/physionet.org/files/challenge-2017/1.0.0"/* "${root}/cinc2017"
+# mv "${root}/cinc2017/training2017.zip?download" "${root}/cinc2017/training2017.zip" 
+# mv "${root}/cinc2017/REFERENCE-v3.csv?download" "${root}/cinc2017/REFERENCE-v3.csv" 
+
 # unzip "${root}/cinc2017/training2017.zip" -d "${root}/cinc2017"
 
 rm -r "${root}/cinc2017/physionet.org/"

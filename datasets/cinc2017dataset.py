@@ -1,3 +1,4 @@
+from datasets.dataset import Dataset
 import os
 import pickle
 import numpy as np
@@ -14,17 +15,18 @@ results_path = "./data_overviews"
 
 #sampling_rate=200
 
-class CincChallenge2017Dataset():
+class CincChallenge2017Dataset(Dataset):
 
     def __init__(self): ## classes, segmentation, selected channel
-        self.name = 'cinc-challenge-2017'#name
-        self.path = "./data/"+self.name+"/training"
+        self.name = 'cinc2017'#name
+        super(CincChallenge2017Dataset, self).__init__()
+        self.path = "./data/"+self.name
         self.patientids = self.get_recordids()
         print(self.patientids)
         #patientids = [os.path.split(id)[-1] for id in patientids]		
 
     def get_recordids(self):
-        with open(self.path+os.sep+"RECORDS"+choice.upper()) as f:
+        with open(self.path+os.sep+"/training2017"+os.sep+"RECORDS"+choice.upper()) as f:
             patientids = f.read().splitlines()
         return patientids
 
@@ -61,3 +63,34 @@ class CincChallenge2017Dataset():
         unique_rhythm = Counter(Y.class_label)
         results_df = pd.DataFrame.from_dict({"all":unique_rhythm}, orient='index')
         results_df.to_csv(results_path+os.sep+self.name+"_distribution.csv")
+
+
+    def get_class_distributions(self):
+        mydict_labels = {}
+        mydict_rhythms = {}
+        labels=[]
+        rhythms=[]
+
+        # load and convert annotation data
+        Y = pd.read_csv(self.path+os.sep+'REFERENCE-v3.csv', index_col=None, header=None, names=["record","class_label"])
+        labels = Y.class_label
+        print(self.morphological_classes.keys())
+        rhythms = [l for l in list(labels) if l in self.rhythmic_classes.keys()] 
+        if len(self.morphological_classes.keys()) > 0:
+            labels = [l for l in list(labels) if l in self.morphological_classes.keys()] 
+            mydict_labels = Counter(labels)
+            results_df_lab = pd.DataFrame.from_dict({"all":mydict_labels}, orient='index')
+        else:
+            morph_class_ids = list(set(self.morphological_classes.values()))
+            results_df_lab = pd.DataFrame(np.zeros((1, len(morph_class_ids))),columns=morph_class_ids)
+            results_df_lab.loc['all',:] = results_df_lab.sum()
+
+        if len(self.rhythmic_classes.keys()) > 0:
+            rhythms = [l for l in list(labels) if l in self.rhythmic_classes.keys()] 
+            mydict_rhythms = Counter(rhythms)
+            results_df_rhy = pd.DataFrame.from_dict({"all":mydict_rhythms}, orient='index')
+
+
+        print(rhythms)
+        #print(labels)
+        return results_df_lab.loc['all',:], results_df_rhy.loc['all',:]

@@ -7,5 +7,5 @@ ltafdb,(N,(AFIB,(AFL,(SVTA,(VT,,(BII,,(SBR,
 irhythm-test,SINUS,AFIB,AFL,SVT,VT,,"WENCKEBACH, AVBTYPE2",CHB,,
 cpsc2018,,"AF, 2",,,,"I-AVB, 3",,,,
 arr10000,SR,AFIB,AF,SVT,,,"2AVB1, 2AVB2",3AVB,SB,ST
-cinc2017,N,AF,,,,,,,,
+cinc2017,N,A,,,,,,,,
 ptb-xl,SR,AFIB,AFLT,"SVTAC, PSVT",,1AVB,2AVB,3AV,SBRAD,STACH
