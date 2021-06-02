@@ -6,6 +6,7 @@ import pickle
 import numpy as np
 import pandas as pd
 from collections import Counter
+import matplotlib.pyplot as plt
 
 results_path = "./data_overviews"
 
@@ -47,6 +48,8 @@ class Arr10000Dataset(Dataset):
         
         self.path = "./data/"+self.name
         self.patientids = self.get_patientids()
+
+        self.lead = "II"
         #self.num_channels = n_channels
         #with open(self.path+"RECORDS"+choice.upper()) as f:
         #    self.patientids = f.read().splitlines()
@@ -57,6 +60,7 @@ class Arr10000Dataset(Dataset):
 
     def get_patientids(self):
         Y = pd.read_excel(self.path+os.sep+"Diagnostics.xlsx", index_col=None, header=0, engine='openpyxl') 
+        self.index = Y
         return Y.FileName.values.tolist()
 
     def load_raw_data(self, df, sampling_rate):
@@ -67,14 +71,30 @@ class Arr10000Dataset(Dataset):
         data = np.array([signal for signal, meta in data])
         return data
 
-    def extract_wave(self, idx):
+    def extract_wave(self, path, idx):
         # to implement
-        return data
-    
+        X = pd.read_csv(path+os.sep+idx, header=0)
+        #plt.plot(X[[self.lead]].values)
+        #plt.show()
+        return X[[self.lead]].values
+
+    def extract_annotation(self, idx):
+        Y = self.index
+        row=Y[Y.FileName==idx]
+        print(row)
+        beats = str(row.Beat.values[0]).split(sep=" ")
+        print(beats)
+        print(self.morphological_classes.keys())
+        labls = [l for l in beats if l in self.morphological_classes.keys()]
+        print(labls)
+        print(row.Rhythm)
+        rhytms = row.Rhythm.values[0] if row.Rhythm.values[0] in self.rhythmic_classes.keys() else None
+        return labls, rhytms
+
     def examine_database(self):
 
         # load and convert annotation data
-        Y = pd.read_excel(self.path+os.sep+"Diagnostics.xlsx", index_col=None, header=0, engine='openpyxl') 
+        Y = self.index
         #print(Y.Rhythm) 
         #print(Y.scp_codes)
         # Load raw signal data
@@ -104,7 +124,7 @@ class Arr10000Dataset(Dataset):
 
     def get_class_distributions(self):
         # load and convert annotation data
-        Y = pd.read_excel(self.path+os.sep+"Diagnostics.xlsx", index_col=None, header=0, engine='openpyxl') 
+        Y = self.index
         
         count=0
         beat_labels = []
