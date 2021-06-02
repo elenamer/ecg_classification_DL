@@ -5,11 +5,7 @@ import os
 import pickle
 import numpy as np
 import pandas as pd
-import csv
 from collections import Counter
-import subprocess
-import wfdb
-import ast
 
 results_path = "./data_overviews"
 
@@ -105,30 +101,6 @@ class Arr10000Dataset(Dataset):
         results_df.to_csv(results_path+os.sep+self.name+"_distribution_"+self.classes+".csv")
 
 
-    def get_rhythmic_classes(self):
-        classes_df = pd.read_csv("tasks/rhythmic_classes.csv", index_col = 0)
-        print(classes_df.loc[self.name])
-        rhy_dict = {}
-        for i, col in enumerate(classes_df.columns):
-            print(classes_df.loc[self.name][col])
-            if str(classes_df.loc[self.name][col]).lower() != 'nan': 
-                for cl in classes_df.loc[self.name][col].split(","):
-                    rhy_dict[cl.strip()] = i
-        print(rhy_dict)
-        return rhy_dict
-    
-    def get_morphological_classes(self):
-        classes_df = pd.read_csv("tasks/morphological_classes.csv", index_col = 0)
-        print(classes_df.loc[self.name])
-        rhy_dict = {}
-
-        for i, col in enumerate(classes_df.columns):
-            print(classes_df.loc[self.name][col])
-            if str(classes_df.loc[self.name][col]).lower() != 'nan': 
-                for cl in classes_df.loc[self.name][col].split(","):
-                    rhy_dict[cl.strip()] = i
-        print(rhy_dict)
-        return rhy_dict
 
     def get_class_distributions(self):
         # load and convert annotation data

@@ -10,13 +10,8 @@ import csv
 from collections import Counter
 import subprocess
 import wfdb
-import numpy as np
-import pandas as pd
-import pickle
 import matplotlib.pyplot as plt
 from scipy.signal import resample
-import tensorflow as tf
-from sklearn import preprocessing
 
 # Basically: generate per-patient files, with segmented beats and labels
 # these files are an input in datagenerator class, which concatenates e.g. train and test patients kako sto treba
