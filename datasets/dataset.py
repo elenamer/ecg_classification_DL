@@ -18,8 +18,11 @@ class Dataset():
         self.rhythmic_classes = self.get_rhythmic_classes()
         self.morphological_classes = self.get_morphological_classes()
 
-
-
+    def get_class_distributions(self):
+        """ Implement here a function that returns 2 dicts, for morph. and rhy. class distributions"""
+        raise NotImplementedError(
+            "Please implement the `get_class_distributions` method for your dataset"
+        )
 
     '''def get_patientids():
 
@@ -62,8 +65,6 @@ class Dataset():
         #print(rhy_dict)
         print(self.all_morph_classes)
         return rhy_dict
-
-    #implement get_class_distributions
 
     def data_distribution_tables(self):
         results_df_lab, results_df_rhy = self.get_class_distributions()
