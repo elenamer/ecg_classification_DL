@@ -175,44 +175,42 @@ def compute_label_aggregations(df, folder, ctype):
 
     aggregation_df = pd.read_csv(folder+'scp_statements.csv', index_col=0)
 
-    if ctype in ['diagnostic', 'subdiagnostic', 'superdiagnostic']:
+    def aggregate_all_diagnostic(y_dic):
+        tmp = []
+        for key in y_dic.keys():
+            if key in diag_agg_df.index:
+                tmp.append(key)
+        return list(set(tmp))
+        
 
-        def aggregate_all_diagnostic(y_dic):
-            tmp = []
-            for key in y_dic.keys():
-                if key in diag_agg_df.index:
-                    tmp.append(key)
-            return list(set(tmp))
-            
+    def aggregate_subdiagnostic(y_dic):
+        tmp = []
+        for key in y_dic.keys():
+            if key in diag_agg_df.index:
+                c = diag_agg_df.loc[key].diagnostic_subclass
+                if str(c) != 'nan':
+                    tmp.append(c)
+        return list(set(tmp))
 
-        def aggregate_subdiagnostic(y_dic):
-            tmp = []
-            for key in y_dic.keys():
-                if key in diag_agg_df.index:
-                    c = diag_agg_df.loc[key].diagnostic_subclass
-                    if str(c) != 'nan':
-                        tmp.append(c)
-            return list(set(tmp))
+    def aggregate_diagnostic(y_dic):
+        tmp = []
+        for key in y_dic.keys():
+            if key in diag_agg_df.index:
+                c = diag_agg_df.loc[key].diagnostic_class
+                if str(c) != 'nan':
+                    tmp.append(c)
+        return list(set(tmp))
 
-        def aggregate_diagnostic(y_dic):
-            tmp = []
-            for key in y_dic.keys():
-                if key in diag_agg_df.index:
-                    c = diag_agg_df.loc[key].diagnostic_class
-                    if str(c) != 'nan':
-                        tmp.append(c)
-            return list(set(tmp))
-
-        diag_agg_df = aggregation_df[aggregation_df.diagnostic == 1.0]
-        if ctype == 'diagnostic':
-            df['diagnostic'] = df.scp_codes.apply(aggregate_all_diagnostic)
-            df['diagnostic_len'] = df.diagnostic.apply(lambda x: len(x))
-        elif ctype == 'subdiagnostic':
-            df['subdiagnostic'] = df.scp_codes.apply(aggregate_subdiagnostic)
-            df['subdiagnostic_len'] = df.subdiagnostic.apply(lambda x: len(x))
-        elif ctype == 'superdiagnostic':
-            df['superdiagnostic'] = df.scp_codes.apply(aggregate_diagnostic)
-            df['superdiagnostic_len'] = df.superdiagnostic.apply(lambda x: len(x))
+    diag_agg_df = aggregation_df[aggregation_df.diagnostic == 1.0]
+    if ctype == 'diagnostic':
+        df['diagnostic'] = df.scp_codes.apply(aggregate_all_diagnostic)
+        df['diagnostic_len'] = df.diagnostic.apply(lambda x: len(x))
+    elif ctype == 'subdiagnostic':
+        df['subdiagnostic'] = df.scp_codes.apply(aggregate_subdiagnostic)
+        df['subdiagnostic_len'] = df.subdiagnostic.apply(lambda x: len(x))
+    elif ctype == 'superdiagnostic':
+        df['superdiagnostic'] = df.scp_codes.apply(aggregate_diagnostic)
+        df['superdiagnostic_len'] = df.superdiagnostic.apply(lambda x: len(x))
     form_agg_df = aggregation_df[aggregation_df.form == 1.0]
 
     def aggregate_form(y_dic):

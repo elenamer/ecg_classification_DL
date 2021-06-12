@@ -50,6 +50,7 @@ class Arr10000Dataset(Dataset):
         self.patientids = self.get_patientids()
 
         self.lead = "II"
+        self.freq = 500
         #self.num_channels = n_channels
         #with open(self.path+"RECORDS"+choice.upper()) as f:
         #    self.patientids = f.read().splitlines()
@@ -71,23 +72,21 @@ class Arr10000Dataset(Dataset):
         data = np.array([signal for signal, meta in data])
         return data
 
-    def extract_wave(self, path, idx):
+    def get_signal(self, path, idx):
         # to implement
         X = pd.read_csv(path+os.sep+idx, header=0)
         #plt.plot(X[[self.lead]].values)
         #plt.show()
         return X[[self.lead]].values
 
-    def extract_annotation(self, idx):
+    def get_annotation(self, idx):
         Y = self.index
         row=Y[Y.FileName==idx]
-        print(row)
+        #print(row)
         beats = str(row.Beat.values[0]).split(sep=" ")
-        print(beats)
-        print(self.morphological_classes.keys())
+        #print(beats)
+        #print(self.morphological_classes.keys())
         labls = [l for l in beats if l in self.morphological_classes.keys()]
-        print(labls)
-        print(row.Rhythm)
         rhytms = row.Rhythm.values[0] if row.Rhythm.values[0] in self.rhythmic_classes.keys() else None
         return labls, rhytms
 
@@ -125,22 +124,18 @@ class Arr10000Dataset(Dataset):
     def get_class_distributions(self):
         # load and convert annotation data
         Y = self.index
-        
         count=0
         beat_labels = []
         rhythm_labels=[]
         for ind, row in Y.iterrows():
-            #if self.classes == "aami":
-            beats = str(row.Beat).split(sep=" ")
-            labls = [l for l in beats if l in self.morphological_classes.keys()]
-            if row.Rhythm in self.rhythmic_classes.keys():
-                rhythm_labels.append(row.Rhythm)
-            if len(labls)>1:
-                count+=1
-                print(labls)
+            idx = row.FileName
+            labls, rhythms = self.get_annotation(idx)
+            if rhythms is not None:
+                rhythm_labels.append(rhythms)
             beat_labels+=labls
+            if len(labls) > 1:
+                print(len(labls))
                 
-        print(count)
         unique_beats = Counter(beat_labels)
         unique_rhythm = Counter(rhythm_labels)
         results_df_lab = pd.DataFrame.from_dict({"all":unique_beats}, orient='index')

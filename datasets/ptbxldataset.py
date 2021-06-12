@@ -59,6 +59,13 @@ class PTBXLDataset(Dataset):
         self.num_channels = 12
         self.patientids = self.get_patientids()
         self.classes='rhythm'
+
+        self.freq = 100
+        self.lead = "II"
+        self.lead_id = 1 # temp, this is actually determined in extract_metadata
+
+        self.index = self.get_index()
+
         #self.classes_dict = initial_classes_dict[classes]
         #print(self.patientids)
             #patientids = [os.path.split(id)[-1] for id in patientids]		
@@ -66,6 +73,23 @@ class PTBXLDataset(Dataset):
     def get_patientids(self):
         with open(self.path+"RECORDS"+choice.upper()) as f:
             return f.read().splitlines()
+
+    def get_index(self):
+        #print(self.patientids)
+
+        self.data, self.raw_labels = load_dataset(self.path, sampling_rate)
+        # Preprocess label data
+        ## modify this function 
+
+        self.labels = compute_label_aggregations(self.raw_labels, self.path, self.classes)
+        self.data, self.labels, self.Y, _ = select_data(self.data, self.labels, self.classes, 0, self.path+'exprs/data/')
+
+
+        # # load and convert annotation data
+        # if self.classes == "rhythm" or self.classes == "form":
+        Y = self.labels #pd.read_csv(self.path+os.sep+'ptbxl_database.csv', index_col='ecg_id')
+        return Y
+
 
     def load_raw_data(self, df, sampling_rate):
         if sampling_rate == 100:
@@ -75,7 +99,7 @@ class PTBXLDataset(Dataset):
         data = np.array([signal for signal, meta in data])
         return data
 
-    def extract_wave(self, idx):
+    def get_signal(self, path, idx):
         """
         Reads .dat file and returns in numpy array. Assumes 2 channels.  The
         returned array is n x 3 where n is the number of samples. The first column
@@ -83,22 +107,72 @@ class PTBXLDataset(Dataset):
         respectively.
         """
         rdsamp = os.path.join(WFDB, 'rdsamp')
-        output = subprocess.check_output([rdsamp, '-r', idx], cwd=self.path)
+        output = subprocess.check_output([rdsamp, '-r', idx], cwd=path)
+        data = np.fromstring(output, dtype=np.int32, sep=' ')
+        return data.reshape((-1, self.num_channels+1))[self.lead_id]
+
+    def get_annotation(self, path, idx):
+        row = self.index[self.index.filename_lr == idx]
+        print(row)#row.Beat.values[0]
+        print( self.morphological_classes.keys())
+        print(row.rhythm)
+
+        labls = [l for l in row.scp_codes.keys() if l in self.morphological_classes.keys()] 
+        rhytms =[l for l in row.rhythm.values[0] if l in self.rhythmic_classes.keys()] 
+        return labls, rhytms
+
+    def extract_wave(self, path, idx):
+        """
+        Reads .dat file and returns in numpy array. Assumes 2 channels.  The
+        returned array is n x 3 where n is the number of samples. The first column
+        is the sample number and the second two are the first and second channel
+        respectively.
+        """
+        rdsamp = os.path.join(WFDB, 'rdsamp')
+        output = subprocess.check_output([rdsamp, '-r', idx], cwd=path)
         data = np.fromstring(output, dtype=np.int32, sep=' ')
         return data.reshape((-1, self.num_channels+1))
     
+    def extract_metadata(self, path, idx):
+        infoName=path+os.sep+idx+'.hea'
+        fid = open(infoName, 'rt') 
+        line = fid.readline() 
+        print(line)
+        freqint=line.split(" ")
+        fs=int(freqint[2])
+        self.num_channels = int(freqint[1])
+        #print(self.Fs)
+        #interval=float(1/self.Fs)
+
+        gains=[]
+        bases=[]
+        signal_ids=[]
+
+        gains.append(1)
+        bases.append(0)
+        signal_ids.append("sample")
+        nsig=1
+
+        for i in np.arange(0,self.num_channels):
+            fields = fid.readline().split(' ')
+            gain = fields[2]
+            base = fields[4]
+            gain = gain.split('/')[0] # in case unit is given
+            if len(fields) ==9:
+                signal = fields[8]
+                signal_ids.append(signal)
+                if signal == "II\n" or signal.startswith("MLI"): #look into
+                    nsig=i+1
+            #[s,s,gain,s,base,s,s,s,signal]
+            gains.append(int(gain) if int(gain)!=0 else 200)
+            bases.append(int(base))
+        fid.close()
+        print(signal_ids)
+        print(nsig)
+        return gains, bases, nsig, fs # nsig is chosen lead
+
     def get_class_distributions(self):
-        #print(self.patientids)
-
-        self.data, self.raw_labels = load_dataset(self.path, sampling_rate)
-        # Preprocess label data
-        self.labels = compute_label_aggregations(self.raw_labels, self.path, self.classes)
-        self.data, self.labels, self.Y, _ = select_data(self.data, self.labels, self.classes, 0, self.path+'exprs/data/')
-
-
-        # # load and convert annotation data
-        # if self.classes == "rhythm" or self.classes == "form":
-        Y = self.labels #pd.read_csv(self.path+os.sep+'ptbxl_database.csv', index_col='ecg_id')
+        Y=self.index
         # else:
         #Y = pd.read_csv(self.path+os.sep+'ptbxl_database.csv', index_col='ecg_id')
         #Y.scp_codes = Y.scp_codes.apply(lambda x: ast.literal_eval(x))
@@ -106,23 +180,6 @@ class PTBXLDataset(Dataset):
         #print(Y.scp_codes)
         # Load raw signal data
         #X = self.load_raw_data(Y, sampling_rate)
-
-
-        # Load scp_statements.csv for diagnostic aggregation
-        agg_df = pd.read_csv(self.path+os.sep+'scp_statements.csv', index_col=0)
-        agg_df = agg_df[agg_df.diagnostic == 1]
-
-
-        def aggregate_diagnostic(y_dic):
-            tmp = []
-            for key in y_dic.keys():
-                if key in agg_df.index:
-                    tmp.append(agg_df.loc[key].diagnostic_class)
-            return list(set(tmp))
-
-        # Apply diagnostic superclass
-        #Y['diagnostic_superclass'] = Y.scp_codes.apply(aggregate_diagnostic)
-        #print(Y.scp_codes)
 
         mydict_labels = {}
         mydict_rhythms = {}
@@ -168,7 +225,7 @@ class PTBXLDataset(Dataset):
         if self.classes == "rhythm" or self.classes == "form":
             Y = self.labels #pd.read_csv(self.path+os.sep+'ptbxl_database.csv', index_col='ecg_id')
         else:
-            pd.read_csv(self.path+os.sep+'ptbxl_database.csv', index_col='ecg_id')
+            Y = pd.read_csv(self.path+os.sep+'ptbxl_database.csv', index_col='ecg_id')
         #Y.scp_codes = Y.scp_codes.apply(lambda x: ast.literal_eval(x))
         #print(Y.scp_codes)
         # Load raw signal data
