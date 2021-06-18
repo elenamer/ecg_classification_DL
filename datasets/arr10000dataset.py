@@ -7,6 +7,8 @@ import numpy as np
 import pandas as pd
 from collections import Counter
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler, MultiLabelBinarizer
+
 
 results_path = "./data_overviews"
 
@@ -47,10 +49,17 @@ class Arr10000Dataset(Dataset):
         super(Arr10000Dataset,self).__init__()
         
         self.path = "./data/"+self.name
+
+
+        self.index = []
         self.patientids = self.get_patientids()
 
         self.lead = "II"
         self.freq = 500
+
+        self.encode_labels()
+
+
         #self.num_channels = n_channels
         #with open(self.path+"RECORDS"+choice.upper()) as f:
         #    self.patientids = f.read().splitlines()
@@ -62,8 +71,31 @@ class Arr10000Dataset(Dataset):
     def get_patientids(self):
         Y = pd.read_excel(self.path+os.sep+"Diagnostics.xlsx", index_col=None, header=0, engine='openpyxl') 
         self.index = Y
+        self.index .set_index("FileName", inplace=True, drop=False)
         return Y.FileName.values.tolist()
 
+    def encode_labels(self):
+        mlb_morph = MultiLabelBinarizer(classes=range(len(self.all_morph_classes.values)))
+        mlb_rhy = MultiLabelBinarizer(classes=range(len(self.all_rhy_classes.values)))
+        encoded_index = self.index.copy()
+        #encoded_index.set_index("FileName", inplace=True)
+        print(encoded_index)
+        encoded_index["rhythms_mlb"] = ""
+        encoded_index["beats_mlb"] = ""
+        for ind in encoded_index.index:
+            #print(row)
+            labls, rhythms = self.get_annotation(self.path, ind)
+            encoded_index.at[ind, "beats_mlb"] = tuple(labls)
+            encoded_index.at[ind, "rhythms_mlb"] = tuple(rhythms)
+
+        encoded_index["beats_mlb"] = mlb_morph.fit_transform(encoded_index["beats_mlb"]).tolist()
+        print(encoded_index["beats_mlb"])
+        encoded_index["rhythms_mlb"] = mlb_rhy.fit_transform(encoded_index["rhythms_mlb"]).tolist()
+        print(encoded_index["rhythms_mlb"])
+        encoded_index = encoded_index[["beats_mlb","rhythms_mlb"]]
+        print(encoded_index)
+
+        
     def load_raw_data(self, df, sampling_rate):
         if sampling_rate == 100:
             data = [wfdb.rdsamp(self.path+f) for f in df.filename_lr]
@@ -79,15 +111,15 @@ class Arr10000Dataset(Dataset):
         #plt.show()
         return X[[self.lead]].values
 
-    def get_annotation(self, idx):
+    def get_annotation(self, path, idx):
         Y = self.index
-        row=Y[Y.FileName==idx]
+        row=Y[Y.index==idx]
         #print(row)
         beats = str(row.Beat.values[0]).split(sep=" ")
         #print(beats)
         #print(self.morphological_classes.keys())
-        labls = [l for l in beats if l in self.morphological_classes.keys()]
-        rhytms = row.Rhythm.values[0] if row.Rhythm.values[0] in self.rhythmic_classes.keys() else None
+        labls = [self.morphological_classes[l] for l in beats if l in self.morphological_classes.keys()]
+        rhytms = [self.rhythmic_classes[row.Rhythm.values[0]] if row.Rhythm.values[0] in self.rhythmic_classes.keys() else None]
         return labls, rhytms
 
     def examine_database(self):
@@ -118,26 +150,3 @@ class Arr10000Dataset(Dataset):
             unique_beats.update(unique_rhythm)
         results_df = pd.DataFrame.from_dict({"all":unique_beats}, orient='index')
         results_df.to_csv(results_path+os.sep+self.name+"_distribution_"+self.classes+".csv")
-
-
-
-    def get_class_distributions(self):
-        # load and convert annotation data
-        Y = self.index
-        count=0
-        beat_labels = []
-        rhythm_labels=[]
-        for ind, row in Y.iterrows():
-            idx = row.FileName
-            labls, rhythms = self.get_annotation(idx)
-            if rhythms is not None:
-                rhythm_labels.append(rhythms)
-            beat_labels+=labls
-            if len(labls) > 1:
-                print(len(labls))
-                
-        unique_beats = Counter(beat_labels)
-        unique_rhythm = Counter(rhythm_labels)
-        results_df_lab = pd.DataFrame.from_dict({"all":unique_beats}, orient='index')
-        results_df_rhy = pd.DataFrame.from_dict({"all":unique_rhythm}, orient='index')
-        return results_df_lab.loc["all",:], results_df_rhy.loc["all",:]

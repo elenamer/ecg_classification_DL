@@ -28,8 +28,9 @@ class INCARTDataset(PhysionetDataset):
         self.ds1_patients_val = [101,114,223] 
         self.ds2_patients = [100,103,105,111,113,117,121,123,200,202,210,212,213,214,219,221,222,228,231,232,233,234]
 
-
         self.stringify_patientids()
+
+        self.num_channels = 12
 
     def stringify_patientids(self):
         self.common_patients = [str(id) for id in self.common_patients]

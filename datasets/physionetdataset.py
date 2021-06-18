@@ -151,6 +151,8 @@ class PhysionetDataset(Dataset):
         self.patientids = self.get_patientids()
         print(self.patientids)
         print(self.common_path)
+
+        self.lead_id = 1 # default: the first one in the list
         #patientids = [os.path.split(id)[-1] for id in patientids]		
 
     def get_patientids(self):
@@ -183,12 +185,12 @@ class PhysionetDataset(Dataset):
             ann=np.array(ann)
             #print(ann[0])
             annot=ann[:,2]
-            annot = [a for a in annot if a in self.morphological_classes.keys()]
+            annot = [self.morphological_classes[a] for a in annot if a in self.morphological_classes.keys()]
             unique_labels = Counter(annot)
 
             rhythm_labels = ann[:,6]
             #print(rhythm_labels)
-            rhythm_labels = [l for l in rhythm_labels if l in self.rhythmic_classes.keys()]
+            rhythm_labels = [self.rhythmic_classes[l] for l in rhythm_labels if l in self.rhythmic_classes.keys()]
 
             unique_rhythm = Counter(rhythm_labels)
             #unique_labels.update(unique_rhythm)
@@ -267,6 +269,21 @@ class PhysionetDataset(Dataset):
         print(len(new_labels))
         #print(len(labels))
         return new_labels
+
+    def get_signal(self, path, idx):
+        rdsamp = os.path.join(WFDB, 'rdsamp')
+        output = subprocess.check_output([rdsamp, '-r', idx], cwd=path)
+        data = np.fromstring(output, dtype=np.int32, sep=' ')
+        print(data.reshape((-1, self.num_channels+1)).shape)
+        # plt.plot(data.reshape((-1, self.num_channels+1))[:,self.lead_id])
+        # plt.show()
+        return data.reshape((-1, self.num_channels+1))[:,self.lead_id]
+
+    def get_annotation(self, path, idx):
+        raise NotImplementedError(
+            "Please implement the `get_annotation` method for your dataset"
+        )
+
 
     def extract_wave(self, path, idx):
         """

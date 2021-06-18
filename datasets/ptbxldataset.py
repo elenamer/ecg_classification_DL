@@ -88,6 +88,7 @@ class PTBXLDataset(Dataset):
         # # load and convert annotation data
         # if self.classes == "rhythm" or self.classes == "form":
         Y = self.labels #pd.read_csv(self.path+os.sep+'ptbxl_database.csv', index_col='ecg_id')
+        Y.set_index("filename_lr", inplace=True, drop=False)
         return Y
 
 
@@ -109,16 +110,14 @@ class PTBXLDataset(Dataset):
         rdsamp = os.path.join(WFDB, 'rdsamp')
         output = subprocess.check_output([rdsamp, '-r', idx], cwd=path)
         data = np.fromstring(output, dtype=np.int32, sep=' ')
-        return data.reshape((-1, self.num_channels+1))[self.lead_id]
+        # plt.plot(data.reshape((-1, self.num_channels+1))[:,self.lead_id])
+        # plt.show()
+        return data.reshape((-1, self.num_channels+1))[:,self.lead_id]
 
     def get_annotation(self, path, idx):
         row = self.index[self.index.filename_lr == idx]
-        print(row)#row.Beat.values[0]
-        print( self.morphological_classes.keys())
-        print(row.rhythm)
-
-        labls = [l for l in row.scp_codes.keys() if l in self.morphological_classes.keys()] 
-        rhytms =[l for l in row.rhythm.values[0] if l in self.rhythmic_classes.keys()] 
+        labls = [self.morphological_classes[str(l)] for l in row.scp_codes.values[0].keys() if str(l) in self.morphological_classes.keys()] 
+        rhytms =[self.rhythmic_classes[str(l)] for l in row.rhythm.values[0] if str(l) in self.rhythmic_classes.keys()] 
         return labls, rhytms
 
     def extract_wave(self, path, idx):
@@ -171,42 +170,42 @@ class PTBXLDataset(Dataset):
         print(nsig)
         return gains, bases, nsig, fs # nsig is chosen lead
 
-    def get_class_distributions(self):
-        Y=self.index
-        # else:
-        #Y = pd.read_csv(self.path+os.sep+'ptbxl_database.csv', index_col='ecg_id')
-        #Y.scp_codes = Y.scp_codes.apply(lambda x: ast.literal_eval(x))
-        print(Y)
-        #print(Y.scp_codes)
-        # Load raw signal data
-        #X = self.load_raw_data(Y, sampling_rate)
+    # def get_class_distributions(self):
+    #     Y=self.index
+    #     # else:
+    #     #Y = pd.read_csv(self.path+os.sep+'ptbxl_database.csv', index_col='ecg_id')
+    #     #Y.scp_codes = Y.scp_codes.apply(lambda x: ast.literal_eval(x))
+    #     print(Y)
+    #     #print(Y.scp_codes)
+    #     # Load raw signal data
+    #     #X = self.load_raw_data(Y, sampling_rate)
 
-        mydict_labels = {}
-        mydict_rhythms = {}
-        labels=[]
-        rhythms=[]
+    #     mydict_labels = {}
+    #     mydict_rhythms = {}
+    #     labels=[]
+    #     rhythms=[]
 
-        count=0
-        for ind, row in Y.iterrows():
-            #if self.classes == 'aami':  
-            labls = [l for l in row.scp_codes.keys() if l in self.morphological_classes.keys()] 
-            rhytms = [l for l in row.rhythm if l in self.rhythmic_classes.keys()] 
-            #print(row.scp_codes.keys())
-            print(row.rhythm)
-            # elif self.classes == 'form':
-            #     labls = row.form
-            # elif self.classes == 'rhythm':
-            #     labls = row.rhythm
-            #print(labls)
-            labels+=list(labls)
-            rhythms+=list(rhytms)
-        #print(labels)
-        mydict_labels = Counter(labels)
-        mydict_rhythm = Counter(rhythms)
-        results_df_rhy = pd.DataFrame.from_dict({"all":mydict_rhythm}, orient='index')
-        results_df_lab = pd.DataFrame.from_dict({"all":mydict_labels}, orient='index')
-        #results_df.to_csv(results_path+os.sep+"ptbxl_distribution_"+self.classes+".csv")
-        return results_df_lab.loc["all",:], results_df_rhy.loc["all",:]
+    #     count=0
+    #     for ind, row in Y.iterrows():
+    #         #if self.classes == 'aami':  
+    #         labls = [l for l in row.scp_codes.keys() if l in self.morphological_classes.keys()] 
+    #         rhytms = [l for l in row.rhythm if l in self.rhythmic_classes.keys()] 
+    #         #print(row.scp_codes.keys())
+    #         print(row.rhythm)
+    #         # elif self.classes == 'form':
+    #         #     labls = row.form
+    #         # elif self.classes == 'rhythm':
+    #         #     labls = row.rhythm
+    #         #print(labls)
+    #         labels+=list(labls)
+    #         rhythms+=list(rhytms)
+    #     #print(labels)
+    #     mydict_labels = Counter(labels)
+    #     mydict_rhythm = Counter(rhythms)
+    #     results_df_rhy = pd.DataFrame.from_dict({"all":mydict_rhythm}, orient='index')
+    #     results_df_lab = pd.DataFrame.from_dict({"all":mydict_labels}, orient='index')
+    #     #results_df.to_csv(results_path+os.sep+"ptbxl_distribution_"+self.classes+".csv")
+    #     return results_df_lab.loc["all",:], results_df_rhy.loc["all",:]
 
     def examine_database(self):
         #print(self.patientids)
