@@ -1,6 +1,8 @@
 #x:(n_samples, beat_length)
 #y:(n_samples)
 
+from numpy.core.fromnumeric import var
+from numpy.lib.twodim_base import vander
 from datasets.dataset import Dataset
 import os
 import numpy as np
@@ -66,6 +68,7 @@ class PTBXLDataset(Dataset):
 
         self.index = self.get_index()
 
+        self.encoded_labels = self.encode_labels()
         #self.classes_dict = initial_classes_dict[classes]
         #print(self.patientids)
             #patientids = [os.path.split(id)[-1] for id in patientids]		
@@ -170,43 +173,6 @@ class PTBXLDataset(Dataset):
         print(nsig)
         return gains, bases, nsig, fs # nsig is chosen lead
 
-    # def get_class_distributions(self):
-    #     Y=self.index
-    #     # else:
-    #     #Y = pd.read_csv(self.path+os.sep+'ptbxl_database.csv', index_col='ecg_id')
-    #     #Y.scp_codes = Y.scp_codes.apply(lambda x: ast.literal_eval(x))
-    #     print(Y)
-    #     #print(Y.scp_codes)
-    #     # Load raw signal data
-    #     #X = self.load_raw_data(Y, sampling_rate)
-
-    #     mydict_labels = {}
-    #     mydict_rhythms = {}
-    #     labels=[]
-    #     rhythms=[]
-
-    #     count=0
-    #     for ind, row in Y.iterrows():
-    #         #if self.classes == 'aami':  
-    #         labls = [l for l in row.scp_codes.keys() if l in self.morphological_classes.keys()] 
-    #         rhytms = [l for l in row.rhythm if l in self.rhythmic_classes.keys()] 
-    #         #print(row.scp_codes.keys())
-    #         print(row.rhythm)
-    #         # elif self.classes == 'form':
-    #         #     labls = row.form
-    #         # elif self.classes == 'rhythm':
-    #         #     labls = row.rhythm
-    #         #print(labls)
-    #         labels+=list(labls)
-    #         rhythms+=list(rhytms)
-    #     #print(labels)
-    #     mydict_labels = Counter(labels)
-    #     mydict_rhythm = Counter(rhythms)
-    #     results_df_rhy = pd.DataFrame.from_dict({"all":mydict_rhythm}, orient='index')
-    #     results_df_lab = pd.DataFrame.from_dict({"all":mydict_labels}, orient='index')
-    #     #results_df.to_csv(results_path+os.sep+"ptbxl_distribution_"+self.classes+".csv")
-    #     return results_df_lab.loc["all",:], results_df_rhy.loc["all",:]
-
     def examine_database(self):
         #print(self.patientids)
         mydict_labels = {}
@@ -265,43 +231,51 @@ class PTBXLDataset(Dataset):
         results_df = pd.DataFrame.from_dict({"all":unique_rhythm}, orient='index')
         results_df.to_csv(results_path+os.sep+"ptbxl_distribution_"+self.classes+".csv")
 
-    def get_crossval_split(self, id=9):
+    def get_crossval_splits(self, task="rhythm",split=9):
+        max_size=22000 # FOr now
         # Load PTB-XL data
-        self.data, self.raw_labels = load_dataset(self.path, sampling_rate)
+        data = [self.get_signal(self.path,id) for id in self.index.filename_lr[:max_size]]
+        data=np.array(data)
+        temp_labels = self.encoded_labels.iloc[:max_size,:]
+        print(temp_labels.shape)
+        print("before")
         # Preprocess label data
-        self.labels = compute_label_aggregations(self.raw_labels, self.path, self.classes)
-        self.data, self.labels, self.Y, _ = select_data(self.data, self.labels, self.classes, 0, self.path+'exprs/data/')
-
         
+        #self.labels = compute_label_aggregations(self.raw_labels, self.path, self.classes)
+        #self.data, self.labels, self.Y, _ = select_data(self.data, self.labels, self.classes, 0, self.path+'exprs/data/')
 
+        if task=="rhythm":
+            y_test = np.array(temp_labels.loc[self.index.strat_fold == split,"rhythms_mlb"].values.tolist())
 
+            y_val = np.array(temp_labels.loc[self.index.strat_fold == split-1,"rhythms_mlb"].values.tolist())
 
-        # 10th fold for testing (9th for now)
-        #self.X_test = self.data[self.labels.strat_fold == self.test_fold]
-        self.y_test = self.labels[self.labels.strat_fold == id]
-        # 9th fold for validation (8th for now)
-        #self.X_val = self.data[self.labels.strat_fold == self.val_fold]
-        self.y_val = self.labels[self.labels.strat_fold == id-1]
+            y_train = np.array(temp_labels.loc[self.index.strat_fold <= split-2,"rhythms_mlb"].values.tolist())
+        else:
+            y_test = np.array(temp_labels.loc[self.index.strat_fold == split,"beats_mlb"].values.tolist())
+
+            y_val = np.array(temp_labels.loc[self.index.strat_fold == split-1,"beats_mlb"].values.tolist())
+
+            y_train = np.array(temp_labels.loc[self.index.strat_fold <= split-2,"beats_mlb"].values.tolist())
+
+        print((self.index.strat_fold == split).values)
+        print("after")
+        X_test = np.array(data[(self.index.strat_fold[:max_size] == split).values])
+        print(X_test.shape)
+        X_val = np.array(data[(self.index.strat_fold[:max_size] == split-1).values])
+        print(X_val.shape)
         # rest for training
-        #self.X_train = self.data[self.labels.strat_fold <= self.train_fold]
-        self.y_train = self.labels[self.labels.strat_fold <= id-2]
+        X_train = np.array(data[(self.index.strat_fold[:max_size] <= split-2).values])
 
         # Preprocess signal data
         #self.X_train, self.X_val, self.X_test = preprocess_signals(self.X_train, self.X_val, self.X_test, self.outputfolder+self.experiment_name+'/data/')
-        self.n_classes = self.y_train.shape[1]
-        partition = {"train": self.y_test.filename_lr.values.tolist() ,"validation":self.y_test.filename_lr.values.tolist(), "test":self.y_test.filename_lr.values.tolist()}
-        return partition
+        # self.n_classes = self.y_train.shape[1]
+        # partition = {"train": self.y_test.filename_lr.values.tolist() ,"validation":self.y_test.filename_lr.values.tolist(), "test":self.y_test.filename_lr.values.tolist()}
+        print(y_test.shape)
+        print(y_train.shape)
+        print(y_val.shape)
+        return X_train, y_train, X_val, y_val, X_test, y_test
 
     def get_labels(self):
         print(self.labels)
         #labls = 
         return self.labels
-
-# Split data into train and test
-# test_fold = 10
-# Train
-# X_train = X[np.where(Y.strat_fold != test_fold)]
-# y_train = Y[(Y.strat_fold != test_fold)].diagnostic_superclass
-# Test
-# X_test = X[np.where(Y.strat_fold == test_fold)]
-# y_test = Y[Y.strat_fold == test_fold].diagnostic_superclass
