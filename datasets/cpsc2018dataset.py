@@ -32,7 +32,8 @@ class CPSC2018Dataset(Dataset):
         self.index = []
 
         self.patientids = self.get_recordids()
-        print(self.patientids)
+
+        self.encoded_labels = self.encode_labels()
 
     def get_recordids(self):
         Y = pd.read_csv(self.path+os.sep+'REFERENCE.csv', index_col=None, header=0)
@@ -51,9 +52,8 @@ class CPSC2018Dataset(Dataset):
         row=self.index[self.index.index==idx]
         #print(row)
         beats = [row.First_label.values[0], row.Second_label.values[0], row.Third_label.values[0]]
-
-        labls = [self.morphological_classes[str(l)] for l in beats if str(l) in self.morphological_classes.keys()]
-        rhytms = [self.rhythmic_classes[str(l)] for l in beats if str(l) in self.rhythmic_classes.keys()]
+        labls = [self.morphological_classes[str(int(l))] for l in beats if not np.isnan(l) and str(int(l)) in self.morphological_classes.keys()]
+        rhytms = [self.rhythmic_classes[str(int(l))] for l in beats if not np.isnan(l) and str(int(l)) in self.rhythmic_classes.keys()]
         return labls, rhytms
 
     # def get_index(self):

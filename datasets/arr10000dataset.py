@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 from collections import Counter
 import matplotlib.pyplot as plt
-from sklearn.preprocessing import StandardScaler, MultiLabelBinarizer
 
 
 results_path = "./data_overviews"
@@ -57,7 +56,7 @@ class Arr10000Dataset(Dataset):
         self.lead = "II"
         self.freq = 500
 
-        self.encode_labels()
+        self.encoded_labels = self.encode_labels()
 
 
         #self.num_channels = n_channels
@@ -73,28 +72,6 @@ class Arr10000Dataset(Dataset):
         self.index = Y
         self.index .set_index("FileName", inplace=True, drop=False)
         return Y.FileName.values.tolist()
-
-    def encode_labels(self):
-        mlb_morph = MultiLabelBinarizer(classes=range(len(self.all_morph_classes.values)))
-        mlb_rhy = MultiLabelBinarizer(classes=range(len(self.all_rhy_classes.values)))
-        encoded_index = self.index.copy()
-        #encoded_index.set_index("FileName", inplace=True)
-        print(encoded_index)
-        encoded_index["rhythms_mlb"] = ""
-        encoded_index["beats_mlb"] = ""
-        for ind in encoded_index.index:
-            #print(row)
-            labls, rhythms = self.get_annotation(self.path, ind)
-            encoded_index.at[ind, "beats_mlb"] = tuple(labls)
-            encoded_index.at[ind, "rhythms_mlb"] = tuple(rhythms)
-
-        encoded_index["beats_mlb"] = mlb_morph.fit_transform(encoded_index["beats_mlb"]).tolist()
-        print(encoded_index["beats_mlb"])
-        encoded_index["rhythms_mlb"] = mlb_rhy.fit_transform(encoded_index["rhythms_mlb"]).tolist()
-        print(encoded_index["rhythms_mlb"])
-        encoded_index = encoded_index[["beats_mlb","rhythms_mlb"]]
-        print(encoded_index)
-
         
     def load_raw_data(self, df, sampling_rate):
         if sampling_rate == 100:

@@ -28,6 +28,8 @@ class CincChallenge2017Dataset(Dataset):
         self.index = self.get_index()
   
         print(self.patientids)
+
+        self.encoded_labels = self.encode_labels()
         #patientids = [os.path.split(id)[-1] for id in patientids]		
 
     def get_recordids(self):

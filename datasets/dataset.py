@@ -5,6 +5,8 @@ import os
 import seaborn as sns
 import matplotlib.pyplot as plt
 from collections import Counter
+from sklearn.preprocessing import StandardScaler, MultiLabelBinarizer
+
 # modes: test (everything in one), train-val-test, crossval (2 or 3 parts)
 
 results_path = "./data_overviews"
@@ -19,6 +21,7 @@ class Dataset():
         self.rhythmic_classes = self.get_rhythmic_classes()
         self.morphological_classes = self.get_morphological_classes()
 
+
     def get_class_distributions(self):
         """ Implement here a function that returns 2 dicts, for morph. and rhy. class distributions"""
         raise NotImplementedError(
@@ -27,7 +30,9 @@ class Dataset():
 
     '''def get_patientids():
 
-    def get_ecgwave()
+    def get_signal()
+
+    def get_annotation()
 
     def examine_dataset()'''
 
@@ -67,8 +72,46 @@ class Dataset():
         print(rhy_dict)
         return rhy_dict
 
+
+    def encode_labels(self):
+        mlb_morph = MultiLabelBinarizer(classes=range(len(self.all_morph_classes.values)))
+        mlb_rhy = MultiLabelBinarizer(classes=range(len(self.all_rhy_classes.values)))
+        encoded_index = self.index.copy()
+        #encoded_index.set_index("FileName", inplace=True)
+        encoded_index["rhythms_mlb"] = ""
+        encoded_index["beats_mlb"] = ""
+        for ind in encoded_index.index:
+            #print(row)
+            labls, rhythms = self.get_annotation(self.path, ind)
+            encoded_index.at[ind, "beats_mlb"] = tuple(labls)
+            encoded_index.at[ind, "rhythms_mlb"] = tuple(rhythms)
+
+            #print(tuple(rhythms))
+
+        encoded_index["beats_mlb"] = mlb_morph.fit_transform(encoded_index["beats_mlb"]).tolist()
+        print(encoded_index["beats_mlb"])
+        encoded_index["rhythms_mlb"] = mlb_rhy.fit_transform(encoded_index["rhythms_mlb"]).tolist()
+        print(encoded_index["rhythms_mlb"])
+        encoded_index = encoded_index[["beats_mlb","rhythms_mlb"]]
+        print(encoded_index)
+        return encoded_index
+
+    def multilabel_distribution_tables(self):
+        beat_counts = self.encoded_labels.beats_mlb.apply(lambda x:sum(x))
+        print(self.encoded_labels.beats_mlb[182])
+        ax = sns.histplot(x=beat_counts)
+        ax.set_title("Morphological multi-label distribution for "+self.name+" Dataset")
+        plt.show()
+        rhythm_counts = self.encoded_labels.rhythms_mlb.apply(lambda x:sum(x))
+        print(rhythm_counts)
+        ax = sns.histplot(x=rhythm_counts)
+        ax.set_title("Rhythmic multi-label distribution for "+self.name+" Dataset")
+        plt.show() 
+
     def get_class_distributions(self):
         # load and convert annotation data
+
+        # overriden in physionetdataset
         Y = self.index
         count=0
         beat_labels = []
@@ -114,19 +157,17 @@ class Dataset():
         
         print(classes_morph)
         print(classes_rhy)
+
         classes_morph.to_csv(results_path+os.sep+self.name+"_morphological_distribution.csv")
         classes_rhy.to_csv(results_path+os.sep+self.name+"_rhythmic_distribution.csv")
+
         ax = sns.barplot(x = self.all_rhy_classes,y = classes_rhy.values.flatten())
         ax.set_title("Rhythmic class distribution for "+self.name+" Dataset")
         plt.show()
+
         ax = sns.barplot(x = self.all_morph_classes,y = classes_morph.values.flatten())        
         ax.set_title("Morphological class distribution for "+self.name+" Dataset")
         plt.show()
 
-        # ax = sns.histplot(x=beat_counts)
-        # ax.set_title("Morphological multi-label distribution for "+self.name+" Dataset")
-        # plt.show()
+        self.multilabel_distribution_tables()
 
-        # ax = sns.histplot(x=rhythm_counts)
-        # ax.set_title("Rhythmic multi-label distribution for "+self.name+" Dataset")
-        # plt.show()
