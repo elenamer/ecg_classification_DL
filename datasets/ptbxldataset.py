@@ -104,18 +104,9 @@ class PTBXLDataset(Dataset):
         return data
 
     def get_signal(self, path, idx):
-        """
-        Reads .dat file and returns in numpy array. Assumes 2 channels.  The
-        returned array is n x 3 where n is the number of samples. The first column
-        is the sample number and the second two are the first and second channel
-        respectively.
-        """
-        rdsamp = os.path.join(WFDB, 'rdsamp')
-        output = subprocess.check_output([rdsamp, '-r', idx], cwd=path)
-        data = np.fromstring(output, dtype=np.int32, sep=' ')
-        # plt.plot(data.reshape((-1, self.num_channels+1))[:,self.lead_id])
-        # plt.show()
-        return data.reshape((-1, self.num_channels+1))[:,self.lead_id]
+        data, metadata = wfdb.rdsamp(path+idx)
+        print(metadata)
+        return data[:,self.lead_id]
 
     def get_annotation(self, path, idx):
         row = self.index[self.index.filename_lr == idx]
@@ -125,10 +116,7 @@ class PTBXLDataset(Dataset):
 
     def extract_wave(self, path, idx):
         """
-        Reads .dat file and returns in numpy array. Assumes 2 channels.  The
-        returned array is n x 3 where n is the number of samples. The first column
-        is the sample number and the second two are the first and second channel
-        respectively.
+        Deprecated
         """
         rdsamp = os.path.join(WFDB, 'rdsamp')
         output = subprocess.check_output([rdsamp, '-r', idx], cwd=path)
@@ -136,6 +124,14 @@ class PTBXLDataset(Dataset):
         return data.reshape((-1, self.num_channels+1))
     
     def extract_metadata(self, path, idx):
+
+        '''
+        
+        Maaaaaybe could be replaced with        
+        data, metadata = wfdb.rdsamp(path+idx)
+
+        '''
+
         infoName=path+os.sep+idx+'.hea'
         fid = open(infoName, 'rt') 
         line = fid.readline() 

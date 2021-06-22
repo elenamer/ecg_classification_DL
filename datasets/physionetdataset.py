@@ -271,13 +271,12 @@ class PhysionetDataset(Dataset):
         return new_labels
 
     def get_signal(self, path, idx):
-        rdsamp = os.path.join(WFDB, 'rdsamp')
-        output = subprocess.check_output([rdsamp, '-r', idx], cwd=path)
-        data = np.fromstring(output, dtype=np.int32, sep=' ')
-        print(data.reshape((-1, self.num_channels+1)).shape)
+        data, metadata = wfdb.rdsamp(path+idx)
+        print(metadata)
         # plt.plot(data.reshape((-1, self.num_channels+1))[:,self.lead_id])
         # plt.show()
-        return data.reshape((-1, self.num_channels+1))[:,self.lead_id]
+        return data[:,self.lead_id]
+
 
     def get_annotation(self, path, idx):
         raise NotImplementedError(
@@ -287,10 +286,7 @@ class PhysionetDataset(Dataset):
 
     def extract_wave(self, path, idx):
         """
-        Reads .dat file and returns in numpy array. Assumes 2 channels.  The
-        returned array is n x 3 where n is the number of samples. The first column
-        is the sample number and the second two are the first and second channel
-        respectively.
+        Deprecated maybe
         """
         rdsamp = os.path.join(WFDB, 'rdsamp')
         output = subprocess.check_output([rdsamp, '-r', idx], cwd=path)

@@ -47,10 +47,7 @@ class CincChallenge2017Dataset(Dataset):
 
     def extract_wave(self, idx):
         """
-        Reads .dat file and returns in numpy array. Assumes 2 channels.  The
-        returned array is n x 3 where n is the number of samples. The first column
-        is the sample number and the second two are the first and second channel
-        respectively.
+        Deprecated 
         """
         rdsamp = os.path.join(WFDB, 'rdsamp')
         output = subprocess.check_output([rdsamp, '-r', idx], cwd=self.path+os.sep+"training2017")
@@ -79,10 +76,10 @@ class CincChallenge2017Dataset(Dataset):
 
 
     def get_signal(self, path, idx):
-        rdsamp = os.path.join(WFDB, 'rdsamp')
-        output = subprocess.check_output([rdsamp, '-r', idx], cwd=path+os.sep+"training2017")
-        data = np.fromstring(output, dtype=np.int32, sep=' ')
-        return data.reshape((-1, 2))[:,1]
+        data, metadata = wfdb.rdsamp(path+idx)
+        print(metadata)
+        return data[:,0]
+
 
     def get_annotation(self, path, idx):
         row = self.index[self.index.ID==idx]

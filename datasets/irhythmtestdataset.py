@@ -5,7 +5,6 @@ import pandas as pd
 import csv
 from collections import Counter
 import subprocess
-import wfdb
 import ast
 import fnmatch
 import glob
@@ -16,8 +15,6 @@ import tqdm
 choices = ['_train','_test']
 choice = ''
 results_path = "./data_overviews"
-
-WFDB = "/usr/local/bin"#/home/elena/wfdb/bin"
 
 sampling_rate=200
 

@@ -72,14 +72,6 @@ class Arr10000Dataset(Dataset):
         self.index = Y
         self.index .set_index("FileName", inplace=True, drop=False)
         return Y.FileName.values.tolist()
-        
-    def load_raw_data(self, df, sampling_rate):
-        if sampling_rate == 100:
-            data = [wfdb.rdsamp(self.path+f) for f in df.filename_lr]
-        else:
-            data = [wfdb.rdsamp(self.path+f) for f in df.filename_hr]
-        data = np.array([signal for signal, meta in data])
-        return data
 
     def get_signal(self, path, idx):
         # to implement
