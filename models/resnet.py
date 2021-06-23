@@ -1,3 +1,4 @@
+from models.model import Classifier
 import tensorflow as tf
 
 
@@ -104,10 +105,10 @@ class BottleneckBlock(tf.keras.layers.Layer):
 
 
 class ResNet(tf.keras.Model):
-    def __init__(self, num_outputs=1, blocks=(2, 2, 2, 2),
+    def __init__(self, blocks=(2, 2, 2, 2),
                  filters=(64, 128, 256, 512), kernel_size=(3, 3, 3, 3),
-                 block_fn=ResidualBlock, include_top=True, dropout = 0, **kwargs):
-        super().__init__(**kwargs)
+                 block_fn=ResidualBlock, dropout = 0, n_classes=10, **kwargs):
+        super(ResNet, self).__init__(**kwargs)
         self.conv1 = conv1d(64, 7, 2)
         self.bn1 = batch_norm()
         self.relu1 = relu()
@@ -118,22 +119,18 @@ class ResNet(tf.keras.Model):
                 strides = 2 if block == 0 and stage > 0 else 1
                 res_block = block_fn(filters[stage], kernel_size[stage], strides, dropout)
                 self.blocks.append(res_block)
-        self.include_top = include_top
-        if include_top:
-            self.global_pool = tf.keras.layers.GlobalAveragePooling1D()
-            out_act = 'sigmoid' if num_outputs == 1 else 'softmax'
-            self.classifier = tf.keras.layers.Dense(num_outputs, out_act)
 
-    def call(self, x, include_top=None, **kwargs):
-        if include_top is None:
-            include_top = self.include_top
+        self.loss = 'categorical_crossentropy'
+
+    def get_optimizer(self, lr):
+        return tf.keras.optimizers.Adam(lr=lr)
+
+    def call(self, x, **kwargs):
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu1(x)
         x = self.maxpool1(x)
         for res_block in self.blocks:
             x = res_block(x)
-        if include_top:
-            x = self.global_pool(x)
-            x = self.classifier(x)
+
         return x

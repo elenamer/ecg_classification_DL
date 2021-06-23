@@ -269,7 +269,7 @@ class PTBXLDataset(Dataset):
         print(y_test.shape)
         print(y_train.shape)
         print(y_val.shape)
-        return X_train, y_train, X_val, y_val, X_test, y_test
+        return X_train[:,:,None], y_train, X_val[:,:,None], y_val, X_test[:,:,None], y_test
 
     def get_labels(self):
         print(self.labels)

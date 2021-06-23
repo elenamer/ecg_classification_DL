@@ -1,5 +1,6 @@
 
 from models.resnet import ResNet
+from models.model import Classifier
 from evaluation.metrics import F1Metric
 from datasets.ptbxldataset import PTBXLDataset
 from datasets.cinc2017dataset import CincChallenge2017Dataset
@@ -30,6 +31,7 @@ choice = "static"
 eval_p = "crossval"
 
 dat=PTBXLDataset()
+dat.data_distribution_tables()
 
 ## Warning: for now balance = True and False are treated the same and saved to same files (i.e. overwritten)
 X_train, Y_train, X_val, Y_val, X_test, Y_test = dat.get_crossval_splits(task="rhythm",split=9)
@@ -41,32 +43,38 @@ if not os.path.exists(exp_path):
         os.mkdir(exp_path+os.sep+"models")
         os.mkdir(exp_path+os.sep+"results")
 
-model = ResNet(num_outputs=num_classes, blocks=[1,1], filters=[32, 64], kernel_size=[15,15], dropout=0.1)
 
-inputs = tf.keras.layers.Input((1000,1,), dtype='float32')
-m1 = tf.keras.Model(inputs=inputs, outputs=model.call(inputs))
-opt = tf.keras.optimizers.Adam(lr=0.0001)
+'''
+    ! Have something like: I want input of x sec, y freq, z, classes 
+    ! a,b,c network parameters
+    ! m, n, q train parameters (loss, opt)
+    p,r,s callbacks and metrics (have to be in fit)
 
-m1.compile(optimizer=opt,
-            #tf.keras.optimizers.Adam(beta_1=0.9, beta_2=0.98, epsilon=1e-9),
-            #loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-            loss='categorical_crossentropy',
-            metrics='acc')
+    and then only call model.fit(train, val)
+    and model.predict(test)
+'''
+model = ResNet(blocks=[1,1], filters=[32, 64], kernel_size=[15,15], dropout=0.1)
 
+clasif = Classifier(model=model, input_size=1000,learning_rate=0.0001)
+
+clasif.add_compile()
+''' '''
 es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=6)
 log_f1 = F1Metric(train=(X_train, Y_train), validation=(X_val, Y_val), path=exp_path+os.sep+"models")
 
 
-m1.fit(x=X_train,y=Y_train, validation_data = (X_val, Y_val), callbacks = [es, log_f1], epochs = 20)
+clasif.fit(x=X_train,y=Y_train, validation_data = (X_val, Y_val), callbacks = [es, log_f1], epochs = 20)
 
-y_pred = m1.predict(X_test)
+y_pred = clasif.predict(X_test)
+print(y_pred.shape)
+print(Y_test.shape)
 cm = confusion_matrix(Y_test.argmax(axis=1), y_pred.argmax(axis=1),labels=range(num_classes))
 output = open(exp_path+os.sep+'CM_test.pkl', 'wb')
 pickle.dump(cm, output)
 output.close()
 
-# y_pred = m1.predict(X_val)
-# cm = confusion_matrix(y_val.argmax(axis=1), y_pred.argmax(axis=1),labels=range(num_classes))
-# output = open(exp_path+os.sep+'CM_val.pkl', 'wb')
-# pickle.dump(cm, output)
-# output.close()
+y_pred = clasif.predict(X_val)
+cm = confusion_matrix(Y_val.argmax(axis=1), y_pred.argmax(axis=1),labels=range(num_classes))
+output = open(exp_path+os.sep+'CM_val.pkl', 'wb')
+pickle.dump(cm, output)
+output.close()
