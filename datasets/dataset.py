@@ -6,6 +6,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from collections import Counter
 from sklearn.preprocessing import StandardScaler, MultiLabelBinarizer
+from skmultilearn.model_selection import IterativeStratification
+
 
 # modes: test (everything in one), train-val-test, crossval (2 or 3 parts)
 
@@ -20,13 +22,8 @@ class Dataset():
 
         self.rhythmic_classes = self.get_rhythmic_classes()
         self.morphological_classes = self.get_morphological_classes()
+        self.k_fold = IterativeStratification(n_splits=10, order=1)
 
-
-    def get_class_distributions(self):
-        """ Implement here a function that returns 2 dicts, for morph. and rhy. class distributions"""
-        raise NotImplementedError(
-            "Please implement the `get_class_distributions` method for your dataset"
-        )
 
     '''def get_patientids():
 
@@ -108,36 +105,65 @@ class Dataset():
         ax.set_title("Rhythmic multi-label distribution for "+self.name+" Dataset")
         plt.show() 
 
-    def get_class_distributions(self):
-        # load and convert annotation data
+    # def get_class_distributions(self):
+    #     # load and convert annotation data
 
-        # overriden in physionetdataset
+    #     # overriden in physionetdataset
+    #     Y = self.index
+    #     count=0
+    #     beat_labels = []
+    #     rhythm_labels=[]
+
+    #     beat_label_counts = []
+    #     rhythm_label_counts = []
+
+    #     for idx in Y.index:
+    #         labls, rhythms = self.get_annotation(self.path, idx)
+    #         if len(rhythms)>0 and rhythms[0] is not None:
+    #             rhythm_labels+=rhythms
+    #             rhythm_label_counts.append(len(rhythms)) # always 1 rhythm
+    #         beat_labels+=labls
+    #         beat_label_counts.append(len(labls))
+                
+    #     unique_beats = Counter(beat_labels)
+    #     unique_rhythm = Counter(rhythm_labels)
+    #     results_df_lab = pd.DataFrame.from_dict({"all":unique_beats}, orient='index')
+    #     results_df_rhy = pd.DataFrame.from_dict({"all":unique_rhythm}, orient='index')
+    #     print("Second")
+    #     print(results_df_rhy)
+    #     print(results_df_lab)
+    #     return results_df_lab.loc["all",:], results_df_rhy.loc["all",:]
+
+    def get_class_distributions(self, list_rhythms, list_beats):
+       # overriden in physionetdataset
+        print(list_rhythms.shape)
         Y = self.index
         count=0
         beat_labels = []
         rhythm_labels=[]
 
-        beat_label_counts = []
-        rhythm_label_counts = []
+        unique_rhythm = {}
+        unique_beats = {}
+        for idx in range(list_rhythms.shape[1]):       
+            unique_rhythm[idx] = sum(list_rhythms[:,idx])
 
-        for idx in Y.index:
-            labls, rhythms = self.get_annotation(self.path, idx)
-            if len(rhythms)>0 and rhythms[0] is not None:
-                rhythm_labels+=rhythms
-                rhythm_label_counts.append(len(rhythms)) # always 1 rhythm
-            beat_labels+=labls
-            beat_label_counts.append(len(labls))
-                
-        unique_beats = Counter(beat_labels)
-        unique_rhythm = Counter(rhythm_labels)
+        for idx in range(list_beats.shape[1]):       
+            unique_beats[idx] = sum(list_beats[:,idx])
+
         results_df_lab = pd.DataFrame.from_dict({"all":unique_beats}, orient='index')
         results_df_rhy = pd.DataFrame.from_dict({"all":unique_rhythm}, orient='index')
+        print("first")
         print(results_df_rhy)
         print(results_df_lab)
         return results_df_lab.loc["all",:], results_df_rhy.loc["all",:]
 
-    def data_distribution_tables(self):
-        results_df_lab, results_df_rhy = self.get_class_distributions()
+    def data_distribution_tables(self, list_rhythms = None, list_beats = None):
+
+        # load and convert annotation data
+        if list_rhythms is None:
+            list_rhythms, list_beats = np.array(self.encoded_labels.rhythms_mlb.values.tolist()), np.array(self.encoded_labels.beats_mlb.values.tolist())
+ 
+        results_df_lab, results_df_rhy = self.get_class_distributions(list_rhythms, list_beats)
 
         print(results_df_lab)
         print(results_df_rhy)
