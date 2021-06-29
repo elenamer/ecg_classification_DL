@@ -9,6 +9,9 @@ import subprocess
 import wfdb
 import ast
 import matplotlib.pyplot as plt
+from skmultilearn.model_selection import iterative_train_test_split
+import itertools
+
 
 choices = ['_train','_test']
 choice = ''
@@ -76,8 +79,7 @@ class CincChallenge2017Dataset(Dataset):
 
 
     def get_signal(self, path, idx):
-        data, metadata = wfdb.rdsamp(path+idx)
-        print(metadata)
+        data, metadata = wfdb.rdsamp(path+os.sep+idx)
         return data[:,0]
 
 
@@ -89,35 +91,45 @@ class CincChallenge2017Dataset(Dataset):
         return labls, rhytms
             
 
-    # def get_class_distributions(self):
-        mydict_labels = {}
-        mydict_rhythms = {}
+    def get_crossval_splits(self, task="rhythm",split=9):
+        max_size=2200 # FOr now
+        # Load PTB-XL data
+        data = [self.get_signal(self.path+os.sep+'training2017',id)[:2700] for id in self.index.index[:max_size]]
         
-        labels=[]
-        rhythms=[]
+        data=np.array(data)
+        temp_labels = self.encoded_labels.iloc[:max_size,:]
+        
+        print("before")
+        # Preprocess label data
 
-        # load and convert annotation data
-        Y = pd.read_csv(self.path+os.sep+'REFERENCE-v3.csv', index_col=None, header=None, names=["record","class_label"])
-        labels = Y.class_label
-        print(self.morphological_classes.keys())
-        rhythms = [l for l in list(labels) if l in self.rhythmic_classes.keys()] 
-        if len(self.morphological_classes.keys()) > 0:
-            labels = [l for l in list(labels) if l in self.morphological_classes.keys()] 
-            mydict_labels = Counter(labels)
-            results_df_lab = pd.DataFrame.from_dict({"all":mydict_labels}, orient='index')
+        if task=="rhythm":
+            print(temp_labels.loc[:,"rhythms_mlb"].values.shape)
+
+            data = data[(temp_labels.rhythms_mlb.apply(lambda x:sum(x)) > 0 ).values]
+            labels = np.array(temp_labels.loc[(temp_labels.rhythms_mlb.apply(lambda x:sum(x)) > 0 ).values,"rhythms_mlb"].values.tolist())
+
+            train, test= next(itertools.islice(self.k_fold.split(data,labels), split, None))
+            X_train, y_train, X_test, y_test = data[train], labels[train], data[test], labels[test]
+
+            # for now always have a different validation set
+            X_train, y_train, X_val, y_val = iterative_train_test_split(X_train, y_train, test_size = 0.111111)
+
         else:
-            morph_class_ids = list(set(self.morphological_classes.values()))
-            results_df_lab = pd.DataFrame(np.zeros((1, len(morph_class_ids))),columns=morph_class_ids)
-            results_df_lab.loc['all',:] = results_df_lab.sum()
+            print(temp_labels.loc[:,"beats_mlb"].values.shape)
 
-        if len(self.rhythmic_classes.keys()) > 0:
-            rhythms = [l for l in list(labels) if l in self.rhythmic_classes.keys()] 
-            mydict_rhythms = Counter(rhythms)
-            results_df_rhy = pd.DataFrame.from_dict({"all":mydict_rhythms}, orient='index')
+            data = data[(temp_labels.beats_mlb.apply(lambda x:sum(x)) > 0 ).values]
+            labels = np.array(temp_labels.loc[(temp_labels.beats_mlb.apply(lambda x:sum(x)) > 0 ).values,"beats_mlb"].values.tolist())
 
-        beat_label_counts = np.ones(len(mydict_rhythms.keys()))
-        rhythm_label_counts = []
+            train, test= next(itertools.islice(self.k_fold.split(data,labels), split, None))
+            X_train, y_train, X_test, y_test = data[train], labels[train], data[test], labels[test]
 
-        print(rhythms)
-        #print(labels)
-        return results_df_lab.loc['all',:], results_df_rhy.loc['all',:]
+            # for now always have a different validation set
+            X_train, y_train, X_val, y_val = iterative_train_test_split(X_train, y_train, test_size = 0.111111)
+
+        print(X_test.shape)
+        print(X_val.shape)
+
+        print(y_test.shape)
+        print(y_train.shape)
+        print(y_val.shape)
+        return X_train[:,:,None], y_train, X_val[:,:,None], y_val, X_test[:,:,None], y_test

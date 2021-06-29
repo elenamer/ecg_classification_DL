@@ -7,7 +7,8 @@ import numpy as np
 import pandas as pd
 from collections import Counter
 import matplotlib.pyplot as plt
-
+from skmultilearn.model_selection import iterative_train_test_split
+import itertools
 
 results_path = "./data_overviews"
 
@@ -119,3 +120,52 @@ class Arr10000Dataset(Dataset):
             unique_beats.update(unique_rhythm)
         results_df = pd.DataFrame.from_dict({"all":unique_beats}, orient='index')
         results_df.to_csv(results_path+os.sep+self.name+"_distribution_"+self.classes+".csv")
+
+
+    def get_crossval_splits(self, task="rhythm",split=9):
+        max_size=2200 # FOr now
+        # Load PTB-XL data
+        data = [self.get_signal(self.path+os.sep+"ECGData",id+".csv") for id in self.index.index[:max_size]]
+        
+        data=np.array(data)
+        temp_labels = self.encoded_labels.iloc[:max_size,:]
+        
+        print("before")
+        # Preprocess label data
+
+        if task=="rhythm":
+            print(temp_labels.loc[:,"rhythms_mlb"].values.shape)
+
+            data = data[(temp_labels.rhythms_mlb.apply(lambda x:sum(x)) > 0 ).values]
+            labels = np.array(temp_labels.loc[(temp_labels.rhythms_mlb.apply(lambda x:sum(x)) > 0 ).values,"rhythms_mlb"].values.tolist())
+
+            train, test= next(itertools.islice(self.k_fold.split(data,labels), split, None))
+            X_train, y_train, X_test, y_test = data[train], labels[train], data[test], labels[test]
+
+            # for now always have a different validation set
+            X_train, y_train, X_val, y_val = iterative_train_test_split(X_train, y_train, test_size = 0.111111)
+
+        else:
+            print(temp_labels.loc[:,"beats_mlb"].values.shape)
+
+            data = data[(temp_labels.beats_mlb.apply(lambda x:sum(x)) > 0 ).values]
+            labels = np.array(temp_labels.loc[(temp_labels.beats_mlb.apply(lambda x:sum(x)) > 0 ).values,"beats_mlb"].values.tolist())
+
+            train, test= next(itertools.islice(self.k_fold.split(data,labels), split, None))
+            X_train, y_train, X_test, y_test = data[train], labels[train], data[test], labels[test]
+
+            # for now always have a different validation set
+            X_train, y_train, X_val, y_val = iterative_train_test_split(X_train, y_train, test_size = 0.111111)
+
+
+        print(X_test.shape)
+        print(X_val.shape)
+
+        # Preprocess signal data
+        #self.X_train, self.X_val, self.X_test = preprocess_signals(self.X_train, self.X_val, self.X_test, self.outputfolder+self.experiment_name+'/data/')
+        # self.n_classes = self.y_train.shape[1]
+        # partition = {"train": self.y_test.filename_lr.values.tolist() ,"validation":self.y_test.filename_lr.values.tolist(), "test":self.y_test.filename_lr.values.tolist()}
+        print(y_test.shape)
+        print(y_train.shape)
+        print(y_val.shape)
+        return X_train, y_train, X_val, y_val, X_test, y_test

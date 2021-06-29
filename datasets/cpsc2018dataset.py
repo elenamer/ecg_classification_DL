@@ -9,6 +9,9 @@ import subprocess
 import ast
 from scipy.io import loadmat
 import matplotlib.pyplot as plt
+from skmultilearn.model_selection import iterative_train_test_split
+import itertools
+
 
 choices = ['_train','_test']
 choice = ''
@@ -43,8 +46,6 @@ class CPSC2018Dataset(Dataset):
     def get_signal(self, path, idx):
         # implement ecg signal extraction
         sex, age, sig = loadmat(path+os.sep+"TrainingSet"+os.sep+idx+".mat")['ECG'][0][0] 
-        plt.plot(sig.T[:,self.lead_id])  
-        plt.show()
         return sig.T[:,self.lead_id]
 
     def get_annotation(self, path, idx):
@@ -73,30 +74,52 @@ class CPSC2018Dataset(Dataset):
         results_df = pd.DataFrame.from_dict({"all":unique_rhythm}, orient='index')
         results_df.to_csv(results_path+os.sep+self.name+"_distribution.csv")
     
-    # def get_class_distributions(self):
-    #     mydict_labels = {}
-    #     mydict_rhythms = {}
 
-    #     labels=[]
-    #     rhythms=[]
+    def get_crossval_splits(self, task="rhythm",split=9):
+        max_size=2200 # FOr now
+        # Load PTB-XL data
+        data = [self.get_signal(self.path,id)[:2700] for id in self.index.index[:max_size]]
+        
+        data=np.array(data)
+        temp_labels = self.encoded_labels.iloc[:max_size,:]
+        
+        print("before")
+        # Preprocess label data
 
-    #     beat_label_counts = []
-    #     rhythm_label_counts = []
+        if task=="rhythm":
+            print(temp_labels.loc[:,"rhythms_mlb"].values.shape)
 
-    #     # load and convert annotation data
-    #     Y = pd.read_csv(self.path+os.sep+'REFERENCE.csv', index_col=None, header=0, dtype=str)
-    #     labels = pd.concat([Y.First_label, Y.Second_label.dropna(), Y.Third_label.dropna()]).values
-    #     print(self.morphological_classes.keys())
-    #     rhythms = [l for l in list(labels) if l in self.rhythmic_classes.keys()] 
-    #     labels = [l for l in list(labels) if l in self.morphological_classes.keys()] 
-    #     print(rhythms)
-    #     print(labels)
+            data = data[(temp_labels.rhythms_mlb.apply(lambda x:sum(x)) > 0 ).values]
+            labels = np.array(temp_labels.loc[(temp_labels.rhythms_mlb.apply(lambda x:sum(x)) > 0 ).values,"rhythms_mlb"].values.tolist())
 
-    #     mydict_rhythms = Counter(rhythms)
-    #     mydict_labels = Counter(labels)
+            train, test= next(itertools.islice(self.k_fold.split(data,labels), split, None))
+            X_train, y_train, X_test, y_test = data[train], labels[train], data[test], labels[test]
 
-    #     results_df_rhy = pd.DataFrame.from_dict({"all":mydict_rhythms}, orient='index')
-    #     results_df_lab = pd.DataFrame.from_dict({"all":mydict_labels}, orient='index')
+            # for now always have a different validation set
+            X_train, y_train, X_val, y_val = iterative_train_test_split(X_train, y_train, test_size = 0.111111)
 
-    #     return results_df_lab.loc['all',:], results_df_rhy.loc['all',:]
+        else:
+            print(temp_labels.loc[:,"beats_mlb"].values.shape)
+
+            data = data[(temp_labels.beats_mlb.apply(lambda x:sum(x)) > 0 ).values]
+            labels = np.array(temp_labels.loc[(temp_labels.beats_mlb.apply(lambda x:sum(x)) > 0 ).values,"beats_mlb"].values.tolist())
+
+            train, test= next(itertools.islice(self.k_fold.split(data,labels), split, None))
+            X_train, y_train, X_test, y_test = data[train], labels[train], data[test], labels[test]
+
+            # for now always have a different validation set
+            X_train, y_train, X_val, y_val = iterative_train_test_split(X_train, y_train, test_size = 0.111111)
+
+        print(X_test.shape)
+        print(X_val.shape)
+
+        # Preprocess signal data
+        #self.X_train, self.X_val, self.X_test = preprocess_signals(self.X_train, self.X_val, self.X_test, self.outputfolder+self.experiment_name+'/data/')
+        # self.n_classes = self.y_train.shape[1]
+        # partition = {"train": self.y_test.filename_lr.values.tolist() ,"validation":self.y_test.filename_lr.values.tolist(), "test":self.y_test.filename_lr.values.tolist()}
+        print(y_test.shape)
+        print(y_train.shape)
+        print(y_val.shape)
+        return X_train[:,:,None], y_train, X_val[:,:,None], y_val, X_test[:,:,None], y_test
+
 
