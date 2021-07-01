@@ -104,23 +104,32 @@ class BottleneckBlock(tf.keras.layers.Layer):
         return x
 
 
-class ResNet(tf.keras.Model):
+class ResNet(tf.keras.layers.Layer):
     def __init__(self, blocks=(2, 2, 2, 2),
                  filters=(64, 128, 256, 512), kernel_size=(3, 3, 3, 3),
-                 block_fn=ResidualBlock, dropout = 0, n_classes=10, **kwargs):
+                 block_fn=ResidualBlock, dropout = 0, **kwargs):
         super(ResNet, self).__init__(**kwargs)
+        self.filters = filters
+        self.block_fn=block_fn
+        self.block_nums = blocks
+        self.kernel_size = kernel_size
+        self.dropout = dropout
+        self.loss = 'categorical_crossentropy'
+
+    def build(self, input_shape):
         self.conv1 = conv1d(64, 7, 2)
         self.bn1 = batch_norm()
         self.relu1 = relu()
         self.maxpool1 = tf.keras.layers.MaxPooling1D(3, 2, padding='same')
         self.blocks = []
-        for stage, num_blocks in enumerate(blocks):
+        for stage, num_blocks in enumerate(self.block_nums):
             for block in range(num_blocks):
                 strides = 2 if block == 0 and stage > 0 else 1
-                res_block = block_fn(filters[stage], kernel_size[stage], strides, dropout)
+                res_block = self.block_fn(self.filters[stage], self.kernel_size[stage], strides, self.dropout)
                 self.blocks.append(res_block)
+        self.global_pool = tf.keras.layers.GlobalAveragePooling1D()
 
-        self.loss = 'categorical_crossentropy'
+        super().build(input_shape)
 
     def get_optimizer(self, lr):
         return tf.keras.optimizers.Adam(lr=lr)
@@ -132,5 +141,5 @@ class ResNet(tf.keras.Model):
         x = self.maxpool1(x)
         for res_block in self.blocks:
             x = res_block(x)
-
+        x = self.global_pool(x)
         return x
