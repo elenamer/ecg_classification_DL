@@ -1,3 +1,12 @@
+'''
+
+Adapted from: 
+https://github.com/ChihHanHuang/Deep-learning-ECG-The-China-Physiological-Signal-Challenge-2018-champion/blob/master/cpsc2018_champion/cpsc2018.py
+
+
+'''
+
+
 import glob
 import random
 import os

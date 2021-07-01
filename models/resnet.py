@@ -1,4 +1,13 @@
-from models.model import Classifier
+
+'''
+
+Adapted from:
+
+https://github.com/kweimann/ecg-transfer-learning/blob/master/transplant/modules/resnet1d.py
+
+
+'''
+
 import tensorflow as tf
 
 
