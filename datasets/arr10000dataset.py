@@ -127,7 +127,7 @@ class Arr10000Dataset(Dataset):
         # Load PTB-XL data
         data = [self.get_signal(self.path+os.sep+"ECGData",id+".csv") for id in self.index.index[:max_size]]
         
-        data=np.array(data)
+        data=np.array(data, dtype=object)
         temp_labels = self.encoded_labels.iloc[:max_size,:]
         
         print("before")
@@ -140,10 +140,18 @@ class Arr10000Dataset(Dataset):
             labels = np.array(temp_labels.loc[(temp_labels.rhythms_mlb.apply(lambda x:sum(x)) > 0 ).values,"rhythms_mlb"].values.tolist())
 
             train, test= next(itertools.islice(self.k_fold.split(data,labels), split, None))
-            X_train, y_train, X_test, y_test = data[train], labels[train], data[test], labels[test]
-
+            X_test, y_test = data[test], labels[test]
+            if split != 0:
+                val_split = split - 1
+            else:
+                val_split = self.k_fold.n_splits - 1
             # for now always have a different validation set
-            X_train, y_train, X_val, y_val = iterative_train_test_split(X_train, y_train, test_size = 0.111111)
+            train, val= next(itertools.islice(self.k_fold.split(data,labels), val_split, None))
+            X_val, y_val = data[val], labels[val]
+            mask = np.ones(data.shape[0],dtype=bool) # keep only train indices to one
+            mask[test]=0
+            mask[val]=0
+            X_train, y_train = data[mask], labels[mask]
 
         else:
             print(temp_labels.loc[:,"beats_mlb"].values.shape)
@@ -152,10 +160,18 @@ class Arr10000Dataset(Dataset):
             labels = np.array(temp_labels.loc[(temp_labels.beats_mlb.apply(lambda x:sum(x)) > 0 ).values,"beats_mlb"].values.tolist())
 
             train, test= next(itertools.islice(self.k_fold.split(data,labels), split, None))
-            X_train, y_train, X_test, y_test = data[train], labels[train], data[test], labels[test]
-
+            X_test, y_test = data[test], labels[test]
+            if split != 0:
+                val_split = split - 1
+            else:
+                val_split = self.k_fold.n_splits - 1
             # for now always have a different validation set
-            X_train, y_train, X_val, y_val = iterative_train_test_split(X_train, y_train, test_size = 0.111111)
+            train, val= next(itertools.islice(self.k_fold.split(data,labels), val_split, None))
+            X_val, y_val = data[val], labels[val]
+            mask = np.ones(data.shape[0],dtype=bool) # keep only train indices to one
+            mask[test]=0
+            mask[val]=0
+            X_train, y_train = data[mask], labels[mask]
 
 
         print(X_test.shape)
