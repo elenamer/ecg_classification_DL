@@ -12,6 +12,7 @@ import subprocess
 import wfdb
 import matplotlib.pyplot as plt
 from scipy.signal import resample
+from sklearn.preprocessing import StandardScaler, MultiLabelBinarizer
 
 # Basically: generate per-patient files, with segmented beats and labels
 # these files are an input in datagenerator class, which concatenates e.g. train and test patients kako sto treba
@@ -165,6 +166,118 @@ class PhysionetDataset(Dataset):
         with open(path_to_db+"RECORDS_TRAIN") as f:
             DS1 = f.read().splitlines()
 
+    '''
+
+    HAve something like this:
+
+    include all functions from ptb xl here:
+
+    have some kind of an index file with labels and e.g. 10s signals (identified by e.g. patient id and start and end sample)
+
+
+    '''
+
+    def encode_labels(self, ann):
+        '''
+        
+        it's a problem that encode_labels is different than in other datasets
+        
+        '''
+        mlb_morph = MultiLabelBinarizer(classes=range(len(self.all_morph_classes.values)))
+        mlb_rhy = MultiLabelBinarizer(classes=range(len(self.all_rhy_classes.values)))
+        encoded_index = pd.DataFrame(ann.symbol, columns=["orig_label"], index = ann.sample)
+        #encoded_index.set_index("FileName", inplace=True)
+        encoded_index["rhythms_mlb"] = ""
+        encoded_index["beats_mlb"] = ""
+        for ind, sample_ind in enumerate(ann.sample):
+            #print(row)        
+            labls = [self.morphological_classes[str(l)] for l in [encoded_index.at[sample_ind, "orig_label"]] if str(l) in self.morphological_classes.keys()] 
+            rhythms =[self.rhythmic_classes[str(l)] for l in [encoded_index.at[sample_ind, "orig_label"]] if str(l) in self.rhythmic_classes.keys()] 
+            encoded_index.at[sample_ind, "beats_mlb"] = tuple(labls)
+            encoded_index.at[sample_ind, "rhythms_mlb"] = tuple(rhythms)
+            #print(tuple(rhythms))
+
+        encoded_index["beats_mlb"] = mlb_morph.fit_transform(encoded_index["beats_mlb"]).tolist()
+        #print(encoded_index["beats_mlb"])
+        encoded_index["rhythms_mlb"] = mlb_rhy.fit_transform(encoded_index["rhythms_mlb"]).tolist()
+        #print(encoded_index["rhythms_mlb"])
+        encoded_index = encoded_index[["beats_mlb","rhythms_mlb"]]
+        #print(encoded_index)
+
+        encoded_index = encoded_index[(encoded_index.beats_mlb.apply(lambda x:sum(x)) > 0).values]
+        return encoded_index
+
+
+    def get_signal(self, path, idx):
+        data, metadata = wfdb.rdsamp(path+idx)
+        return data[:,self.lead_id]
+
+
+    def smt(self, indices, labels):
+        row = self.index[self.index.filename_lr == idx]
+        labls = [self.morphological_classes[str(l)] for l in row.scp_codes.values[0].keys() if str(l) in self.morphological_classes.keys()] 
+        rhytms =[self.rhythmic_classes[str(l)] for l in row.rhythm.values[0] if str(l) in self.rhythmic_classes.keys()] 
+        return labls, rhytms
+
+    def get_annotation(self, path, idx):
+        ann = wfdb.rdann(path+idx, "atr")
+
+        '''
+        
+        keep it like this for now, but it's a problem that get_annotation returns different things than in other datasets
+        
+        '''
+        encoded_index = self.encode_labels(ann)
+        return encoded_index
+
+    def get_crossval_splits(self, task="rhythm",split=9):
+        max_size=2 # FOr now
+        # Load PTB-XL data
+        X_train = [self.get_signal(self.path,id) for id in self.ds1_patients_train[:max_size]]
+        X_test = [self.get_signal(self.path,id) for id in self.ds2_patients[:max_size]]
+        X_val = [self.get_signal(self.path,id) for id in self.ds1_patients_val[:max_size]]
+                       
+        X_train=np.array(X_train)
+        X_test=np.array(X_test)
+        X_val=np.array(X_val)
+
+
+        y_train = [self.get_annotation(self.path,id) for id in self.ds1_patients_train[:max_size]]
+        y_test = [self.get_annotation(self.path,id) for id in self.ds2_patients[:max_size]]
+        y_val = [self.get_annotation(self.path,id) for id in self.ds1_patients_val[:max_size]]
+        
+        '''
+            old: self.encoded_labels.iloc[:max_size,:]
+
+            this here needs to be custom to physionet 
+
+        '''    
+        
+        print("before")
+        # Preprocess label data
+
+        if task=="rhythm":
+            y_train = [df["rhythms_mlb"] for df in y_train]
+            y_test = [df["rhythms_mlb"] for df in y_test]
+            y_val = [df["rhythms_mlb"] for df in y_val]
+        else:
+            y_train = [df["beats_mlb"] for df in y_train]
+            y_test = [df["beats_mlb"] for df in y_test]
+            y_val = [df["beats_mlb"] for df in y_val]
+
+        print(X_test.shape)
+        print(X_val.shape)
+
+        # Preprocess signal data
+        #self.X_train, self.X_val, self.X_test = preprocess_signals(self.X_train, self.X_val, self.X_test, self.outputfolder+self.experiment_name+'/data/')
+        # self.n_classes = self.y_train.shape[1]
+        # partition = {"train": self.y_test.filename_lr.values.tolist() ,"validation":self.y_test.filename_lr.values.tolist(), "test":self.y_test.filename_lr.values.tolist()}
+        print(len(y_test))# print(y_test.shape)
+        # print(y_train.shape)
+        # print(y_val.shape)
+        return X_train, y_train, X_val, y_val, X_test, y_test
+
+
 
     '''
     TO DO ELENA: 
@@ -269,20 +382,6 @@ class PhysionetDataset(Dataset):
         print(len(new_labels))
         #print(len(labels))
         return new_labels
-
-    def get_signal(self, path, idx):
-        data, metadata = wfdb.rdsamp(path+idx)
-        print(metadata)
-        # plt.plot(data.reshape((-1, self.num_channels+1))[:,self.lead_id])
-        # plt.show()
-        return data[:,self.lead_id]
-
-
-    def get_annotation(self, path, idx):
-        raise NotImplementedError(
-            "Please implement the `get_annotation` method for your dataset"
-        )
-
 
     def extract_wave(self, path, idx):
         """
