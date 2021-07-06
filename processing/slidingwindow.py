@@ -53,15 +53,12 @@ class SlidingWindow(Transform):
                     new_labels.extend([labels[ind]] * nrows)
                 self.idmap.extend([ind] * nrows)
                 #print(idmap)
-        new_data = tf.keras.preprocessing.sequence.pad_sequences(new_data, maxlen=self.input_size, dtype="float32", padding="post", truncating="post", value=0.0)
-        if new_data.ndim == 2:
-            new_data = new_data[:,:,None]
-        print(new_data.shape)
+        
         if labels is None:
+            new_data = super(SlidingWindow, self).process(new_data)
             return new_data
             # just crop/pad if needed
             # convert to numpy array
 
-        new_labels = np.array(new_labels)
-        print(new_labels.shape)
+        new_data, new_labels = super(SlidingWindow, self).process(new_data, new_labels)
         return new_data, new_labels
