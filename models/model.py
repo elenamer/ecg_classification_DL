@@ -39,19 +39,20 @@ class Classifier(tf.keras.Model):
     def fit(self, x, y, validation_data):
 
         es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=20, restore_best_weights=True)
-        log_f1 = F1Metric(train=(x, y), validation=validation_data, path=self.path+os.sep+"models")
+        #log_f1 = F1Metric(train=(x, y), validation=(X_val, y_val), path=self.path+os.sep+"models")
         wandb_cb = WandbCallback(save_weights_only=True)
 
         x, y = self.transform.process(X=x,labels=y,window=True)
 
         X_val, y_val = self.transform.process(X = validation_data[0], labels=validation_data[1],window=True)
-        super(Classifier, self).fit(x, y, validation_data = (X_val, y_val), callbacks = [es, log_f1, wandb_cb], epochs = self.epochs)
+        super(Classifier, self).fit(x, y, validation_data = (X_val, y_val), callbacks = [es, wandb_cb], epochs = self.epochs)
 
-    def predict(self, X):
+    def predict(self, X, y):
+        # y is only R-peak locations in this case
         self.transform.reset_idmap()
-        X = self.transform.process(X=X,window=True)
+        X = self.transform.process(X=X, labels = y, window=True)
 
-        preds = super().predict(X) # always on window-level
+        preds = super(Classifier, self).predict(X) # always on window-level
         agg_preds = self.transform.aggregate_labels(preds)
         return agg_preds # always on set level
 
