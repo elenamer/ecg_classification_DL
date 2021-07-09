@@ -6,10 +6,6 @@ https://github.com/helme/ecg_ptbxl_benchmarking/blob/bed65591f0e530aa6a9cb4a4681
 '''
 
 from processing.transform import Transform
-import tensorflow as tf
-import os
-from evaluation.metrics import F1Metric
-from wandb.keras import WandbCallback
 import numpy as np
 
 

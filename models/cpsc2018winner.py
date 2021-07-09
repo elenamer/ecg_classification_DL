@@ -12,7 +12,6 @@ import random
 import os
 import argparse
 import scipy.io as sio
-from keras import backend as K
 from sklearn.model_selection import train_test_split
 import csv
 import numpy
@@ -28,6 +27,7 @@ from tensorflow.keras.layers import Layer
 import numpy as np
 from tensorflow.keras.layers import BatchNormalization
 from tensorflow.keras import regularizers
+from tensorflow.keras import backend as K
 import scipy.io as sio
 from os import listdir
 
