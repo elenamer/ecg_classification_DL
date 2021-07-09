@@ -69,13 +69,13 @@ class SegmentBeats(Transform):
         print(start_ind)
         print("End index:")
         print(end_ind)
-        print(labels)
+        #print(labels)
         data=[]
         all_labls = []
 
         for ind in labels.index[start_ind:end_ind]:
             rPeak = ind
-            print(labels.loc[ind])
+            #print(labels.loc[ind])
             label=labels.loc[ind]
             #print(label)
             next_ind+=1
@@ -132,10 +132,18 @@ class SegmentBeats(Transform):
         full_labels = []
         choice = "static"
         for ind, sig in enumerate(X):
-            beats, labls = self.segment_beats(choice, sig, labels[ind], self.input_size, 0, -1)
+            if len(sig) == self.input_size:
+                print("no need, already segmented")
+                full_data = X
+                full_labels = labels
+                break
+            beats, labls = self.segment_beats(choice, sig, labels[ind], self.input_size, 0, 60*360)
             full_data.extend(beats)
             full_labels.extend(labls)
-            print(full_labels)
+            #print(full_labels)
         full_data, full_labels = super(SegmentBeats, self).process(full_data, full_labels)
         self.idmap = np.arange(full_data.shape[0])
+        print("after processing")
+        print(full_data.shape)
+        print(full_labels.shape)
         return full_data, full_labels
