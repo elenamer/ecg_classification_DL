@@ -129,9 +129,10 @@ class CNNBlock(tf.keras.layers.Layer):
 class CPSCWinnerNet(tf.keras.layers.Layer):
     def __init__(self,dropout = 0, **kwargs):
         super(CPSCWinnerNet, self).__init__(**kwargs)
+        self.model_name = "cpscwinner"
         self.num_blocks = 5
         self.dropout = dropout
-        self.loss = 'categorical_crossentropy'
+        self.loss = 'binary_crossentropy'
 
     def build(self, input_shape):
         self.conv1 = Convolution1D(12, 3, padding='same')
