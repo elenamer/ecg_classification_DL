@@ -29,6 +29,7 @@ class SegmentBeats(Transform):
     def __init__(self, input_size):
         self.idmap = [] 
         self.input_size = input_size
+        self.name = "segmentbeats"
 
     def reset_idmap(self):
         self.idmap = []

@@ -7,6 +7,9 @@ import numpy as np
 
 class Transform():
 
+    def __init__(self, input_size):
+        self.name = "standard"
+        self.input_size = input_size
     # Add something like normalization by default
 
     def aggregate_labels(self, preds, idmap):
