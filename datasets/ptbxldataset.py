@@ -235,29 +235,43 @@ class PTBXLDataset(Dataset):
         temp_labels = self.encoded_labels.iloc[:max_size,:]
         print(temp_labels.shape)
         print("before")
+        print(data.shape)
         # Preprocess label data
         
         #self.labels = compute_label_aggregations(self.raw_labels, self.path, self.classes)
         #self.data, self.labels, self.Y, _ = select_data(self.data, self.labels, self.classes, 0, self.path+'exprs/data/')
 
+        if split != 0:
+            val_split = split 
+            split = split + 1 
+        else:
+            val_split = self.k_fold.n_splits
+            split = 1
+        # for now always have a different validation set
+        test_indices, val_indices = (self.index.strat_fold[:max_size] == split).values, (self.index.strat_fold[:max_size] == val_split).values
+        train_indices = np.ones(data.shape[0],dtype=bool) # keep only train indices to one
+        train_indices[test_indices]=0
+        train_indices[val_indices]=0
+
         print((self.index.strat_fold == split).values)
         print("after")
-        X_test = np.array(data[(self.index.strat_fold[:max_size] == split).values])
+        X_test = np.array(data[test_indices])
         print(X_test.shape)
-        X_val = np.array(data[(self.index.strat_fold[:max_size] == split-1).values])
+        X_val = np.array(data[val_indices])
         print(X_val.shape)
         # rest for training
-        X_train = np.array(data[(self.index.strat_fold[:max_size] <= split-2).values])
+        X_train = np.array(data[train_indices])
 
         if task=="rhythm":
-            y_test = np.array(temp_labels.loc[self.index.strat_fold == split,"rhythms_mlb"].values.tolist())
-            y_val = np.array(temp_labels.loc[self.index.strat_fold == split-1,"rhythms_mlb"].values.tolist())
-            y_train = np.array(temp_labels.loc[self.index.strat_fold <= split-2,"rhythms_mlb"].values.tolist())
+            y_test = np.array(temp_labels.loc[test_indices,"rhythms_mlb"].values.tolist())
+            y_val = np.array(temp_labels.loc[val_indices,"rhythms_mlb"].values.tolist())
+            y_train = np.array(temp_labels.loc[train_indices,"rhythms_mlb"].values.tolist())
         else:
-            y_test = np.array(temp_labels.loc[self.index.strat_fold == split,"beats_mlb"].values.tolist())
-            y_val = np.array(temp_labels.loc[self.index.strat_fold == split-1,"beats_mlb"].values.tolist())
-            y_train = np.array(temp_labels.loc[self.index.strat_fold <= split-2,"beats_mlb"].values.tolist())
+            y_test = np.array(temp_labels.loc[test_indices,"beats_mlb"].values.tolist())
+            y_val = np.array(temp_labels.loc[val_indices,"beats_mlb"].values.tolist())
+            y_train = np.array(temp_labels.loc[train_indices,"beats_mlb"].values.tolist())
 
+        print(y_train.shape)
 
         X_train = X_train[y_train.sum(axis=1) > 0]
         y_train = y_train[y_train.sum(axis=1) > 0]
