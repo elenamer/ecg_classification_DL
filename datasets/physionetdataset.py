@@ -231,7 +231,7 @@ class PhysionetDataset(Dataset):
         return encoded_index
 
     def get_crossval_splits(self, task="rhythm",split=9):
-        max_size=2 # FOr now
+        max_size=50 # FOr now, should remove this
         # Load PTB-XL data
         X_train = [self.get_signal(self.path,id) for id in self.ds1_patients_train[:max_size]]
         X_test = [self.get_signal(self.path,id) for id in self.ds2_patients[:max_size]]

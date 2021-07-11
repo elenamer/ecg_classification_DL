@@ -29,7 +29,7 @@ class CincChallenge2017Dataset(Dataset):
         self.path = "./data/"+self.name
         self.patientids = self.get_recordids()
         self.index = self.get_index()
-  
+        self.freq = 300
         print(self.patientids)
 
         self.encoded_labels = self.encode_labels()

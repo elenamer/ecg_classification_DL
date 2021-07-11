@@ -30,7 +30,7 @@ class CPSC2018Dataset(Dataset):
 
         self.lead = "II"
         self.lead_id = 1 # temp, this is actually determined in extract_metadata
-
+        self.freq = 500
         self.index = []
 
         self.patientids = self.get_recordids()

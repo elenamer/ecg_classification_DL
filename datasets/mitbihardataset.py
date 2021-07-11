@@ -16,7 +16,7 @@ class MITBIHARDataset(PhysionetDataset):
         super(MITBIHARDataset, self).__init__(name)
 
         self.classes = ["N", "S", "V", "F", "Q"]
-
+        self.freq = 360
 
         # for patient-specific
         self.common_patients = [101,106,108,109,112,114,115,116,118,119,122,124,100,103,105,111,113,117,121,123]
