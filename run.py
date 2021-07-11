@@ -10,6 +10,11 @@ from evaluation.experiment import Experiment
 
 exp_config = {}
 
+exp2 = Experiment(CPSC2018Dataset, Transform, 144, CPSCWinnerNet, 'rhythm', 'inter', 100) # learning parameters not passed for now?
+                                                                                # do they depend on dataset? on model?
+
+exp2.run()
+exp2.evaluate()
 
 exp1 = Experiment(PTBXLDataset, SlidingWindow, 2.5, ResNet, 'rhythm', 'inter', 100) # learning parameters not passed for now?
                                                                                 # do they depend on dataset? on model?
@@ -18,8 +23,3 @@ exp1.run()
 exp1.evaluate()
 
 
-exp2 = Experiment(CPSC2018Dataset, Transform, 144, CPSCWinnerNet, 'rhythm', 'inter', 100) # learning parameters not passed for now?
-                                                                                # do they depend on dataset? on model?
-
-exp2.run()
-exp2.evaluate()

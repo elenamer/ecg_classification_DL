@@ -69,6 +69,9 @@ class PTBXLDataset(Dataset):
         self.index = self.get_index()
 
         self.encoded_labels = self.encode_labels()
+        max_size=22000 # FOr now
+        # Load PTB-XL data
+        self.data = [self.get_signal(self.path,id) for id in self.index.filename_lr[:max_size]]
         #self.classes_dict = initial_classes_dict[classes]
         #print(self.patientids)
             #patientids = [os.path.split(id)[-1] for id in patientids]		
@@ -80,18 +83,19 @@ class PTBXLDataset(Dataset):
     def get_index(self):
         #print(self.patientids)
 
-        self.data, self.raw_labels = load_dataset(self.path, sampling_rate)
+        data, self.raw_labels = load_dataset(self.path, sampling_rate)
         # Preprocess label data
         ## modify this function 
 
         self.labels = compute_label_aggregations(self.raw_labels, self.path, self.classes)
-        self.data, self.labels, self.Y, _ = select_data(self.data, self.labels, self.classes, 0, self.path+'exprs/data/')
+        data, self.labels, self.Y, _ = select_data(data, self.labels, self.classes, 0, self.path+'exprs/data/')
 
 
         # # load and convert annotation data
         # if self.classes == "rhythm" or self.classes == "form":
         Y = self.labels #pd.read_csv(self.path+os.sep+'ptbxl_database.csv', index_col='ecg_id')
         Y.set_index("filename_lr", inplace=True, drop=False)
+
         return Y
 
 
@@ -229,9 +233,7 @@ class PTBXLDataset(Dataset):
     def get_crossval_splits(self, task="rhythm",split=9):
 
         max_size=22000 # FOr now
-        # Load PTB-XL data
-        data = [self.get_signal(self.path,id) for id in self.index.filename_lr[:max_size]]
-        data=np.array(data, dtype=object)
+        data=np.array(self.data, dtype=object)
         temp_labels = self.encoded_labels.iloc[:max_size,:]
         print(temp_labels.shape)
         print("before")
