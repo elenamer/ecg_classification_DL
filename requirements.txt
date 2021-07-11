@@ -10,5 +10,3 @@ scikit_multilearn==0.2.0
 scipy==1.6.3
 keras==2.4.3
 scikit_learn==0.24.2
-torch==1.9.0
-util==0.0.1
