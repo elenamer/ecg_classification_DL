@@ -10,7 +10,7 @@ from evaluation.experiment import Experiment
 
 exp_config = {}
 
-exp2 = Experiment(CPSC2018Dataset, Transform, 144, CPSCWinnerNet, 'rhythm', 'inter', 100) # learning parameters not passed for now?
+exp2 = Experiment(CPSC2018Dataset, Transform, 144, CPSCWinnerNet, 'beat', 'inter', 100) # learning parameters not passed for now?
                                                                                 # do they depend on dataset? on model?
 
 exp2.run()

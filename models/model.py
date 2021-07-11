@@ -38,7 +38,7 @@ class Classifier(tf.keras.Model):
     
     def fit(self, x, y, validation_data):
 
-        es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=20, restore_best_weights=True)
+        es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
         wandb_cb = WandbCallback(save_weights_only=True)
 
         x, y = self.transform.process(X=x,labels=y)
@@ -47,7 +47,7 @@ class Classifier(tf.keras.Model):
         log_f1 = F1Metric(train=(x, y), validation=(X_val, y_val), path=self.path+os.sep+"models")
         log_auc = AUCMetric(train=(x, y), validation=(X_val, y_val), path=self.path+os.sep+"models")
 
-        super(Classifier, self).fit(x, y, validation_data = (X_val, y_val), callbacks = [es, wandb_cb, log_f1, log_auc], epochs = self.epochs)
+        super(Classifier, self).fit(x, y, validation_data = (X_val, y_val), callbacks = [es, wandb_cb, log_f1, log_auc], epochs = self.epochs, batch_size=128)
 
     def predict(self, X, y):
         # y is only R-peak locations in this case

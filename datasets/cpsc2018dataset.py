@@ -34,7 +34,7 @@ class CPSC2018Dataset(Dataset):
         self.index = []
 
         self.patientids = self.get_recordids()
-        max_size=220 # FOr now
+        max_size=len(self.patientids) # FOr now
         # Load PTB-XL data
         self.data = [self.get_signal(self.path,id) for id in self.index.index[:max_size]]
         
@@ -79,7 +79,7 @@ class CPSC2018Dataset(Dataset):
     
 
     def get_crossval_splits(self, task="rhythm",split=9):
-        max_size=22000
+        max_size=len(self.patientids)
         data=np.array(self.data, dtype=object)
         temp_labels = self.encoded_labels.iloc[:max_size,:]
         

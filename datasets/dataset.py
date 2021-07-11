@@ -22,7 +22,7 @@ class Dataset():
 
         self.rhythmic_classes = self.get_rhythmic_classes()
         self.morphological_classes = self.get_morphological_classes()
-        self.k_fold = IterativeStratification(n_splits=10, order=1) # fixed for now, should be defined by evaluation paradigm in the future
+        self.k_fold = IterativeStratification(n_splits=10, order=1, random_state=100) # fixed for now, should be defined by evaluation paradigm in the future
 
 
     '''def get_patientids():

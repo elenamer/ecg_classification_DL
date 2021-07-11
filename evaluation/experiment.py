@@ -78,11 +78,11 @@ class Experiment():
             wandb.run.name = "crossval"+str(n)
             wandb.run.save()
             tf.keras.backend.clear_session()
-            self.classifier = Classifier(self.model, self.input_size, len(self.classes), self.transform, path=self.path+os.sep+str(n), learning_rate=0.0001, epochs = self.epochs)
+            self.classifier = Classifier(self.model, self.input_size, len(self.classes), self.transform, path=self.path+os.sep+str(n), learning_rate=0.001, epochs = self.epochs)
             self.classifier.add_compile()
             self.classifier.summary()
             print(n)
-            X_train, Y_train, X_val, Y_val, X_test, Y_test = self.dataset.get_crossval_splits(split=n)
+            X_train, Y_train, X_val, Y_val, X_test, Y_test = self.dataset.get_crossval_splits(split=n, task = self.task)
             
             Y_test.dump(self.path+os.sep+str(n)+os.sep+"Y_test.npy") 
             Y_val.dump(self.path+os.sep+str(n)+os.sep+"Y_val.npy") 
