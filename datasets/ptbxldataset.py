@@ -228,7 +228,7 @@ class PTBXLDataset(Dataset):
 
     def get_crossval_splits(self, task="rhythm",split=9):
 
-        max_size=2200 # FOr now
+        max_size=22000 # FOr now
         # Load PTB-XL data
         data = [self.get_signal(self.path,id) for id in self.index.filename_lr[:max_size]]
         data=np.array(data, dtype=object)
