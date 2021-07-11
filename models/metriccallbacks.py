@@ -29,8 +29,8 @@ class MetricCallback(tf.keras.callbacks.Callback):
     
     def on_train_end(self,logs={}):
         fig1, ax1 = plt.subplots()
-        ax1.plot(self.train_f1_scores)
-        ax1.plot(self.val_f1_scores)
+        ax1.plot(self.train_scores)
+        ax1.plot(self.val_scores)
         ax1.set_title('model '+self.name)
         ax1.set_ylabel(self.name)
         ax1.set_xlabel('epoch')
@@ -56,8 +56,8 @@ class F1Metric(MetricCallback):
      
     def train_val_scores(self):
         val_targ = self.validation[1].argmax(axis=1)
-        # print(self.validation[1].shape)
-        # print(self.validation[0].shape)
+        print(self.validation[1].shape)
+        print(self.validation[0].shape)
         val_predict = (np.asarray(self.model.predict(self.validation[0], self.validation[1]).argmax(axis=1)))
         train_targ = self.train[1].argmax(axis=1)  
         # print(val_targ.shape)
