@@ -15,7 +15,7 @@ class Transform():
     def reset_idmap(self):
         self.idmap = []
 
-    def aggregate_labels(self, preds, idmap):
+    def aggregate_labels(self, preds):
         return preds
 
 
