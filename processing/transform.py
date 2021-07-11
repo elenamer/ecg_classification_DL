@@ -12,9 +12,11 @@ class Transform():
         self.input_size = input_size
     # Add something like normalization by default
 
+    def reset_idmap(self):
+        self.idmap = []
+
     def aggregate_labels(self, preds, idmap):
-        print("are you here?")
-        raise NotImplementedError
+        return preds
 
 
     def process(self, X, labels=None):
