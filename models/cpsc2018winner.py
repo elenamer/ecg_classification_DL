@@ -100,9 +100,9 @@ set block parameters dynamically
 '''
 
 class CNNBlock(tf.keras.layers.Layer):
-    def __init__(self, dropout = 0, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.dropout = dropout
+        self.dropout = 0.1
 
     def build(self, input_shape):
         self.conv1 = Convolution1D(12, 3, padding='same')

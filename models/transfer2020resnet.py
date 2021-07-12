@@ -116,7 +116,7 @@ class BottleneckBlock(tf.keras.layers.Layer):
 class ResNet(tf.keras.layers.Layer):
     def __init__(self, blocks=(2, 2, 2, 2),
                  filters=(64, 128, 256, 512), kernel_size=(3, 3, 3, 3),
-                 block_fn=ResidualBlock, dropout = 0, **kwargs):
+                 block_fn=ResidualBlock, dropout = 0.1, **kwargs):
         super(ResNet, self).__init__(**kwargs)
         self.filters = filters
         self.block_fn=block_fn

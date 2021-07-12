@@ -85,6 +85,17 @@ class Experiment():
             print(n)
             X_train, Y_train, X_val, Y_val, X_test, Y_test = self.dataset.get_crossval_splits(split=n, task = self.task)
             
+            ## Quite problematic, have it like this for now
+            # Basically: with segment beats the datasets returned from get_crossval_splits are at a different level
+            # It kind of works like this, but figure something out better 
+            self.transform.reset_idmap()
+            X_test, Y_test = self.transform.process(X = X_test, labels = Y_test)
+            X_val, Y_val = self.transform.process(X = X_val, labels = Y_val)
+            X_train, Y_train = self.transform.process(X = X_train, labels = Y_train)
+
+            print("after processing")
+
+
             Y_test.dump(self.path+os.sep+str(n)+os.sep+"Y_test.npy") 
             Y_val.dump(self.path+os.sep+str(n)+os.sep+"Y_val.npy") 
             Y_train.dump(self.path+os.sep+str(n)+os.sep+"Y_train.npy") 
