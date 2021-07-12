@@ -11,3 +11,4 @@ matplotlib==3.3.4
 keras==2.4.3
 scikit_learn==0.24.2
 wandb==0.10.33
+PyWavelets==1.1.1

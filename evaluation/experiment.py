@@ -48,11 +48,14 @@ def evaluate_metrics(confusion_matrix):
 class Experiment():
     def __init__(self, dataset, transform, input_seconds, model, task, evaluation_strategy, epochs, save_model = False):
         self.dataset = dataset()
-        fs = self.dataset.freq
-        self.input_size = int(input_seconds*fs)
+        self.fs = self.dataset.freq
+        self.input_size = int(input_seconds*self.fs)
         self.transform = transform(self.input_size) # connected with input_size
+        self.is_dnn = True
         self.model = model #(dropout=0.1)
-        model_name = model(dropout=0.1).model_name
+        model_name = model.get_name()
+        if model_name == "wavelet":
+            self.is_dnn=False
         self.task = task
         if task == "rhythm":
             self.classes = self.dataset.all_rhy_classes
@@ -78,10 +81,13 @@ class Experiment():
             run = wandb.init(project=self.name, reinit=True)            
             wandb.run.name = "crossval"+str(n)
             wandb.run.save()
-            tf.keras.backend.clear_session()
-            self.classifier = Classifier(self.model(dropout=0.1), self.input_size, len(self.classes), self.transform, path=self.path+os.sep+str(n), learning_rate=0.0001, epochs = self.epochs) ## lr for good cpsc run is ~0.0001 - 0.001
-            self.classifier.add_compile()
-            self.classifier.summary()
+            if self.is_dnn:
+                tf.keras.backend.clear_session()
+                self.classifier = Classifier(self.model(), self.input_size, len(self.classes), self.transform, path=self.path+os.sep+str(n), learning_rate=0.0001, epochs = self.epochs) ## lr for good cpsc run is ~0.0001 - 0.001
+                self.classifier.add_compile()
+                self.classifier.summary()
+            else:
+                self.classifier = self.model(n_classes=len(self.classes), freq=self.fs, outputfolder=self.path+os.sep+str(n))
             print(n)
             X_train, Y_train, X_val, Y_val, X_test, Y_test = self.dataset.get_crossval_splits(split=n, task = self.task)
             
