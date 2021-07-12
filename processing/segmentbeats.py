@@ -132,7 +132,7 @@ class SegmentBeats(Transform):
                 full_data = X
                 full_labels = labels
                 break
-            beats, labls = self.segment_beats(choice, sig, labels[ind], self.input_size, 0, 60*360)
+            beats, labls = self.segment_beats(choice, sig, labels[ind], self.input_size, 0, -1)
             full_data.extend(beats)
             full_labels.extend(labls)
             #print(full_labels)
