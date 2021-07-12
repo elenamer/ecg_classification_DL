@@ -176,3 +176,7 @@ class CPSCWinnerNet(tf.keras.layers.Layer):
         x = self.lrelu5(x) 
         x = self.dp5(x) 
         return x
+    
+    @staticmethod
+    def get_name():
+        return 'cpscwinner'

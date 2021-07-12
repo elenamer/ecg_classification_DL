@@ -62,3 +62,9 @@ class CNN(tf.keras.layers.Layer):
         x = self.dense2(x)
         x = self.relu2(x)
         return x
+
+    @staticmethod
+    def get_name():
+        print("INSIDE GET NAME")
+        return 'cnn'
+
