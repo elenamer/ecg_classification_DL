@@ -51,7 +51,8 @@ class Experiment():
         fs = self.dataset.freq
         self.input_size = int(input_seconds*fs)
         self.transform = transform(self.input_size) # connected with input_size
-        self.model = model(dropout=0.1)
+        self.model = model #(dropout=0.1)
+        model_name = model(dropout=0.1).model_name
         self.task = task
         if task == "rhythm":
             self.classes = self.dataset.all_rhy_classes
@@ -59,10 +60,10 @@ class Experiment():
             self.classes = self.dataset.all_morph_classes
         self.eval = evaluation_strategy
 
-        self.path = "experiments"+os.sep+self.dataset.name+os.sep+self.transform.name+str(self.input_size)+os.sep+self.model.model_name+os.sep+self.task  
+        self.path = "experiments"+os.sep+self.dataset.name+os.sep+self.transform.name+str(self.input_size)+os.sep+model_name+os.sep+self.task  
         os.makedirs(self.path, exist_ok=True)
         self.save = save_model
-        self.name = self.dataset.name+"_"+self.transform.name+str(self.input_size)+"_"+self.model.model_name+"_"+self.task  
+        self.name = self.dataset.name+"_"+self.transform.name+str(self.input_size)+"_"+model_name+"_"+self.task  
 
         self.epochs = epochs
     
@@ -78,7 +79,7 @@ class Experiment():
             wandb.run.name = "crossval"+str(n)
             wandb.run.save()
             tf.keras.backend.clear_session()
-            self.classifier = Classifier(self.model, self.input_size, len(self.classes), self.transform, path=self.path+os.sep+str(n), learning_rate=0.001, epochs = self.epochs)
+            self.classifier = Classifier(self.model(dropout=0.1), self.input_size, len(self.classes), self.transform, path=self.path+os.sep+str(n), learning_rate=0.0001, epochs = self.epochs) ## lr for good cpsc run is ~0.0001 - 0.001
             self.classifier.add_compile()
             self.classifier.summary()
             print(n)
