@@ -105,10 +105,14 @@ class WaveletModel():
         self.n_dense_dim = 128
         self.epochs=30
 
-    def fit(self, X_train, y_train, X_val, y_val):
+    def fit(self, x, y, validation_data):
+        X_train = x
+        y_train = y
+        X_val = validation_data[0]
+        y_val = validation_data[1]
         XF_train = get_ecg_features(X_train)
         XF_val = get_ecg_features(X_val)
-        
+
         if self.classifier == 'LR':
             if self.n_classes > 1:
                 clf = OneVsRestClassifier(LogisticRegression(C=self.regularizer_C, solver='lbfgs', max_iter=1000, n_jobs=-1))
@@ -140,7 +144,7 @@ class WaveletModel():
             self.model.fit(XFT_train, y_train, validation_data=(XFT_val, y_val), epochs=self.epochs, batch_size=128, callbacks=[mc_loss])#, mc_score])
             self.model.save(self.outputfolder +'last_model.h5')
 
-    def predict(self, X):
+    def predict(self, X, y):
         XF = get_ecg_features(X)
         if self.classifier == 'LR':
             clf = pickle.load(open(self.outputfolder+'clf.pkl', 'rb'))
