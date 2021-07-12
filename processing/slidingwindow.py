@@ -41,7 +41,7 @@ class SlidingWindow(Transform):
         new_data = []
         new_labels = []
         for ind, sig in enumerate(X):
-            if len(sig==self.input_size):
+            if len(sig) == self.input_size:
                 print("no need, already windowed")
                 new_data = X
                 new_labels = labels
