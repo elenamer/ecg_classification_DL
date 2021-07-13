@@ -94,7 +94,7 @@ class WaveletModel():
         # Disclaimer: This model assumes equal shapes across all samples!
         # standard parameters
         self.name = 'wavelet'
-        self.outputfolder = outputfolder
+        self.outputfolder = outputfolder + os.sep
         self.n_classes = n_classes
         self.freq = freq
         self.regularizer_C = regularizer_C
@@ -112,7 +112,6 @@ class WaveletModel():
         y_val = validation_data[1]
         XF_train = get_ecg_features(X_train)
         XF_val = get_ecg_features(X_val)
-
         if self.classifier == 'LR':
             if self.n_classes > 1:
                 clf = OneVsRestClassifier(LogisticRegression(C=self.regularizer_C, solver='lbfgs', max_iter=1000, n_jobs=-1))
@@ -156,7 +155,9 @@ class WaveletModel():
             clf = pickle.load(open(self.outputfolder+'clf.pkl', 'rb'))
             y_pred = clf.predict_proba(XF)
             if self.n_classes > 1:
-                return np.array([yi[:,1] for yi in y_pred]).T
+                temp =np.array([[x[1] if x.shape[0]==2 else 0 for x in yi] for yi in y_pred ]).T
+                print(temp.shape)
+                return temp
             else:
                 return y_pred[:,1][:,np.newaxis]
         elif self.classifier == 'NN':
