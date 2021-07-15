@@ -100,9 +100,9 @@ set block parameters dynamically
 '''
 
 class CNNBlock(tf.keras.layers.Layer):
-    def __init__(self, **kwargs):
+    def __init__(self, dropout, **kwargs):
         super().__init__(**kwargs)
-        self.dropout = 0.1
+        self.dropout = dropout
 
     def build(self, input_shape):
         self.conv1 = Convolution1D(12, 3, padding='same')
@@ -127,11 +127,11 @@ class CNNBlock(tf.keras.layers.Layer):
 
 
 class CPSCWinnerNet(tf.keras.layers.Layer):
-    def __init__(self,dropout = 0, **kwargs):
+    def __init__(self,**kwargs):
         super(CPSCWinnerNet, self).__init__(**kwargs)
         self.model_name = "cpscwinner"
         self.num_blocks = 5
-        self.dropout = dropout
+        self.dropout = 0.1
         self.loss = 'binary_crossentropy'
 
     def build(self, input_shape):

@@ -153,3 +153,8 @@ class ResNet(tf.keras.layers.Layer):
             x = res_block(x)
         x = self.global_pool(x)
         return x
+            
+    @staticmethod
+    def get_name():
+        return 'resnet'
+
