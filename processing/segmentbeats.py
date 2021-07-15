@@ -30,6 +30,7 @@ class SegmentBeats(Transform):
         self.idmap = [] 
         self.input_size = input_size
         self.name = "segmentbeats"
+        self.groupmap = []
 
     def reset_idmap(self):
         self.idmap = []
@@ -60,10 +61,10 @@ class SegmentBeats(Transform):
 
         skipped=0
         next_ind=start_ind
-        print("Start index:")
-        print(start_ind)
-        print("End index:")
-        print(end_ind)
+        # print("Start index:")
+        # print(start_ind)
+        # print("End index:")
+        # print(end_ind)
         #print(labels)
         data=[]
         all_labls = []
@@ -99,8 +100,8 @@ class SegmentBeats(Transform):
             if np.std(sig)==0:
                 print("this happened")
                 continue
-            data.append(sig)
-            # !! data.append(normalize(sig))
+            #data.append(sig)
+            data.append(normalize(sig))
 
             all_labls.append(label)
 
@@ -135,6 +136,7 @@ class SegmentBeats(Transform):
             beats, labls = self.segment_beats(choice, sig, labels[ind], self.input_size, 0, -1)
             full_data.extend(beats)
             full_labels.extend(labls)
+            self.groupmap.extend([ind]*len(beats))
             #print(full_labels)
         full_data, full_labels = super(SegmentBeats, self).process(full_data, full_labels)
         self.idmap = np.arange(full_data.shape[0])
