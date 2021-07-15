@@ -27,13 +27,8 @@ def remove_base_gain(ecgsig, gains, bases):
 class SegmentBeats(Transform):
 
     def __init__(self, input_size):
-        self.idmap = [] 
         self.input_size = input_size
         self.name = "segmentbeats"
-        self.groupmap = []
-
-    def reset_idmap(self):
-        self.idmap = []
 
     def aggregate_labels(self, preds):
 
@@ -127,6 +122,8 @@ class SegmentBeats(Transform):
         full_data = []
         full_labels = []
         choice = "static"
+        idmap = []
+        groupmap = []
         for ind, sig in enumerate(X):
             if len(sig) == self.input_size:
                 print("no need, already segmented")
@@ -136,11 +133,11 @@ class SegmentBeats(Transform):
             beats, labls = self.segment_beats(choice, sig, labels[ind], self.input_size, 0, -1)
             full_data.extend(beats)
             full_labels.extend(labls)
-            self.groupmap.extend([ind]*len(beats))
+            groupmap.extend([ind]*len(beats))
             #print(full_labels)
         full_data, full_labels = super(SegmentBeats, self).process(full_data, full_labels)
-        self.idmap = np.arange(full_data.shape[0])
+        idmap = np.arange(full_data.shape[0])
         print("after processing")
         print(full_data.shape)
         print(full_labels.shape)
-        return full_data, full_labels
+        return full_data, full_labels, idmap # or maybe groupmap?

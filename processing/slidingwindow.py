@@ -12,34 +12,31 @@ import numpy as np
 class SlidingWindow(Transform):
     def __init__(self, input_size):
         self.input_size = input_size
-        self.idmap = [] 
         self.name = "slidingwindow"
 
-    def reset_idmap(self):
-        self.idmap = []
-
-    def aggregate_labels(self, preds):
+    def aggregate_labels(self, preds, idmap=None):
         '''
         needs to ba called right after process, meant to be used only in predict function
         '''
         aggregate_fn = np.mean
-        print(self.idmap)
-        if self.idmap is not None:
+        print(idmap)
+        if idmap is not None:
             print("aggregating predictions...")
             preds_aggregated = []
             targs_aggregated = []
-            for i in np.unique(self.idmap):
-                preds_local = preds[np.where(self.idmap==i)[0]]
-                #print(preds_local)
+            for i in np.unique(idmap):
+                preds_local = preds[np.where(idmap==i)[0]]
                 preds_aggregated.append(aggregate_fn(preds_local,axis=0))
-                #print(aggregate_fn(preds_local,axis=0))
             return np.array(preds_aggregated)
+        else:
+            return np.array(preds)
 
     def process(self, X, labels=None):
         overlap = 0.5
         print("windowing")
         new_data = []
         new_labels = []
+        idmap = []
         for ind, sig in enumerate(X):
             if len(sig) == self.input_size:
                 print("no need, already windowed")
@@ -57,14 +54,14 @@ class SlidingWindow(Transform):
             new_data.extend(windows.tolist())
             if labels is not None:
                 new_labels.extend([labels[ind]] * nrows)
-            self.idmap.extend([ind] * nrows)
+            idmap.extend([ind] * nrows)
             #print(idmap)
         
         if labels is None:
             new_data = super(SlidingWindow, self).process(new_data)
-            return new_data
+            return new_data, idmap
             # just crop/pad if needed
             # convert to numpy array
 
         new_data, new_labels = super(SlidingWindow, self).process(new_data, new_labels)
-        return new_data, new_labels
+        return new_data, new_labels, idmap

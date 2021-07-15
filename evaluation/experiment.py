@@ -69,6 +69,7 @@ class Experiment():
         self.name = self.dataset.name+"_"+self.transform.name+str(self.input_size)+"_"+model_name+"_"+self.task  
 
         self.epochs = epochs
+        self.aggregate = True
     
     def run(self):
 
@@ -91,13 +92,12 @@ class Experiment():
             print(n)
             X_train, Y_train, X_val, Y_val, X_test, Y_test = self.dataset.get_crossval_splits(split=n, task = self.task)
             
-            ## Quite problematic, have it like this for now
-            # Basically: with segment beats the datasets returned from get_crossval_splits are at a different level
-            # It kind of works like this, but figure something out better 
+
             self.transform.reset_idmap()
-            X_test, Y_test = self.transform.process(X = X_test, labels = Y_test)
-            X_val, Y_val = self.transform.process(X = X_val, labels = Y_val)
-            X_train, Y_train = self.transform.process(X = X_train, labels = Y_train)
+
+            X_test, Y_test, idmap_test = self.transform.process(X = X_test, labels = Y_test)
+            X_val, Y_val, idmap_val = self.transform.process(X = X_val, labels = Y_val)
+            X_train, Y_train, idmap_train = self.transform.process(X = X_train, labels = Y_train)
 
             print("after processing")
 
@@ -108,9 +108,25 @@ class Experiment():
 
             self.classifier.fit(x=X_train,y=Y_train, validation_data = (X_val, Y_val))
 
-            self.classifier.predict(X_test, Y_test).dump(self.path+os.sep+str(n)+os.sep+"Y_test_pred.npy") 
-            self.classifier.predict(X_val, Y_val).dump(self.path+os.sep+str(n)+os.sep+"Y_val_pred.npy") 
-            self.classifier.predict(X_train, Y_train).dump(self.path+os.sep+str(n)+os.sep+"Y_train_pred.npy") 
+            Y_test_pred = self.classifier.predict(X_test)
+            Y_test_pred.dump(self.path+os.sep+str(n)+os.sep+"Y_test_pred.npy") 
+            Y_val_pred = self.classifier.predict(X_val)
+            Y_val_pred.dump(self.path+os.sep+str(n)+os.sep+"Y_val_pred.npy") 
+            Y_train_pred = self.classifier.predict(X_train)
+            Y_train_pred.dump(self.path+os.sep+str(n)+os.sep+"Y_train_pred.npy") 
+
+            if self.aggregate:
+                Y_train_pred_agg = self.transform.aggregate_labels(Y_train_pred, idmap_train)
+                Y_train_pred_agg.dump(self.path+os.sep+str(n)+os.sep+"Y_train_pred_agg.npy") 
+                Y_test_pred_agg = self.transform.aggregate_labels(Y_test_pred, idmap_test)
+                Y_test_pred_agg.dump(self.path+os.sep+str(n)+os.sep+"Y_test_pred_agg.npy") 
+                Y_val_pred_agg = self.transform.aggregate_labels(Y_val_pred, idmap_val)
+                Y_val_pred_agg.dump(self.path+os.sep+str(n)+os.sep+"Y_val_pred_agg.npy")     
+
+
+                self.transform.aggregate_labels(Y_train, idmap_train).dump(self.path+os.sep+str(n)+os.sep+"Y_train_agg.npy") 
+                self.transform.aggregate_labels(Y_val, idmap_val).dump(self.path+os.sep+str(n)+os.sep+"Y_val_agg.npy") 
+                self.transform.aggregate_labels(Y_test, idmap_test).dump(self.path+os.sep+str(n)+os.sep+"Y_test_agg.npy") 
 
             if self.save:
                 os.makedirs(self.path+os.sep+str(n)+os.sep+"model", exist_ok=True)
@@ -146,21 +162,45 @@ class Experiment():
             y_test_pred = np.load(self.path+os.sep+str(n)+os.sep+'Y_test_pred.npy', allow_pickle=True)
             
             labels = np.argwhere(y_train.sum(axis=0) > 0 )
+      
             print(labels)
             print(np.sum(y_test_pred, axis=0))
             print(np.sum(y_test, axis=0))
 
-            auc_test = sklearn.metrics.roc_auc_score(y_test[:,(labels[:,0])], y_test_pred[:,(labels[:,0])], average='macro')
-            auc_val = sklearn.metrics.roc_auc_score(y_val[:,(labels[:,0])], y_val_pred[:,(labels[:,0])], average='macro')
+            if self.aggregate:
 
-            auc_test_scores.append(auc_test)
-            auc_val_scores.append(auc_val)
+                y_val_agg = np.load(self.path+os.sep+str(n)+os.sep+'Y_val_agg.npy', allow_pickle=True)
+                y_test_agg = np.load(self.path+os.sep+str(n)+os.sep+'Y_test_agg.npy', allow_pickle=True)
+                
 
-            f1_val = sklearn.metrics.f1_score(y_test.argmax(axis=1), y_test_pred.argmax(axis=1), average = 'macro')
-            f1_test = sklearn.metrics.f1_score(y_val.argmax(axis=1), y_val_pred.argmax(axis=1), average = 'macro')
+                y_val_pred_agg = np.load(self.path+os.sep+str(n)+os.sep+'Y_val_pred_agg.npy', allow_pickle=True)
+                y_test_pred_agg = np.load(self.path+os.sep+str(n)+os.sep+'Y_test_pred_agg.npy', allow_pickle=True)
+                
+                auc_test = sklearn.metrics.roc_auc_score(y_test_agg[:,(labels[:,0])], y_test_pred_agg[:,(labels[:,0])], average='macro')
+                auc_val = sklearn.metrics.roc_auc_score(y_val_agg[:,(labels[:,0])], y_val_pred_agg[:,(labels[:,0])], average='macro')
 
-            f1_test_scores.append(f1_test)
-            f1_val_scores.append(f1_val)
+                auc_test_scores.append(auc_test)
+                auc_val_scores.append(auc_val)
+
+                f1_val = sklearn.metrics.f1_score(y_test_agg.argmax(axis=1), y_test_pred_agg.argmax(axis=1), average = 'macro')
+                f1_test = sklearn.metrics.f1_score(y_val_agg.argmax(axis=1), y_val_pred_agg.argmax(axis=1), average = 'macro')
+
+                f1_test_scores.append(f1_test)
+                f1_val_scores.append(f1_val)
+
+            else:
+
+                auc_test = sklearn.metrics.roc_auc_score(y_test[:,(labels[:,0])], y_test_pred[:,(labels[:,0])], average='macro')
+                auc_val = sklearn.metrics.roc_auc_score(y_val[:,(labels[:,0])], y_val_pred[:,(labels[:,0])], average='macro')
+
+                auc_test_scores.append(auc_test)
+                auc_val_scores.append(auc_val)
+
+                f1_val = sklearn.metrics.f1_score(y_test.argmax(axis=1), y_test_pred.argmax(axis=1), average = 'macro')
+                f1_test = sklearn.metrics.f1_score(y_val.argmax(axis=1), y_val_pred.argmax(axis=1), average = 'macro')
+
+                f1_test_scores.append(f1_test)
+                f1_val_scores.append(f1_val)
 
         results_dict["auc"] = {"test": { 
             "mean" : np.mean(np.array(auc_test_scores)),
