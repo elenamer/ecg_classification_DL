@@ -11,9 +11,9 @@ aami_annots_list=['N','L','R','e','j','S','A','a','J','V','E','F','/','f','Q']
 
 class AFDataset(PhysionetDataset):
 
-    def __init__(self): ## classes, segmentation, selected channel
+    def __init__(self, task, lead = 'II'): ## classes, segmentation, selected channel
         self.name = "afdb"
-        super(AFDataset, self).__init__(self.name)
+        super(AFDataset, self).__init__(self.name, task)
 
         self.classes = ["N", "S", "V", "F", "Q"]
 
@@ -29,6 +29,8 @@ class AFDataset(PhysionetDataset):
         self.ds1_patients_val = [101,114,223] 
         self.ds2_patients = [100,103,105,111,113,117,121,123,200,202,210,212,213,214,219,221,222,228,231,232,233,234]
 
+
+        self.lead = lead 
 
         self.stringify_patientids()
 

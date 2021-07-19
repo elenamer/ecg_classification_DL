@@ -44,9 +44,9 @@ initial_classes_dict = {
 
 class Arr10000Dataset(Dataset):
 
-    def __init__(self): ## classes, segmentation, selected channel
+    def __init__(self, task, lead = 'II'): ## classes, segmentation, selected channel
         self.name = 'arr10000'
-        super(Arr10000Dataset,self).__init__()
+        super(Arr10000Dataset,self).__init__(task)
         
         self.path = "./data/"+self.name
 
@@ -54,7 +54,7 @@ class Arr10000Dataset(Dataset):
         self.index = []
         self.patientids = self.get_patientids()
 
-        self.lead = "II"
+        self.lead = lead # options: e.g. 'II' or 'V1-V2'
         self.freq = 500
 
         self.encoded_labels = self.encode_labels()
@@ -77,9 +77,17 @@ class Arr10000Dataset(Dataset):
     def get_signal(self, path, idx):
         # to implement
         X = pd.read_csv(path+os.sep+idx, header=0)
-        #plt.plot(X[[self.lead]].values)
-        #plt.show()
-        return X[[self.lead]].values
+        lead_names = self.lead.split("-")
+        if len(lead_names) == 1:
+            sig = X[[self.lead]].values
+        else:
+            sig = X[[lead_names[0]]].values - X[[lead_names[1]]].values
+        # plt.plot(sig)
+        # plt.show()
+        # plt.plot(X[['II']].values)
+        # plt.show()
+        return sig
+
 
     def get_annotation(self, path, idx):
         Y = self.index
@@ -88,9 +96,10 @@ class Arr10000Dataset(Dataset):
         beats = str(row.Beat.values[0]).split(sep=" ")
         #print(beats)
         #print(self.morphological_classes.keys())
-        labls = [self.morphological_classes[l] for l in beats if l in self.morphological_classes.keys()]
-        rhytms = [self.rhythmic_classes[row.Rhythm.values[0]] if row.Rhythm.values[0] in self.rhythmic_classes.keys() else None]
-        return labls, rhytms
+        labls = [self.classes[l] for l in beats if l in self.classes.keys()]
+        rhytms = [self.classes[row.Rhythm.values[0]] if row.Rhythm.values[0] in self.classes.keys() else None]
+        labls.extend(rhytms)
+        return labls
 
     def examine_database(self):
 
@@ -122,7 +131,7 @@ class Arr10000Dataset(Dataset):
         results_df.to_csv(results_path+os.sep+self.name+"_distribution_"+self.classes+".csv")
 
 
-    def get_crossval_splits(self, task="rhythm",split=9):
+    def get_crossval_splits(self, split=9):
         max_size=2200 # FOr now
         # Load PTB-XL data
         data = [self.get_signal(self.path+os.sep+"ECGData",id+".csv") for id in self.index.index[:max_size]]
@@ -133,46 +142,24 @@ class Arr10000Dataset(Dataset):
         print("before")
         # Preprocess label data
 
-        if task=="rhythm":
-            print(temp_labels.loc[:,"rhythms_mlb"].values.shape)
+        print(temp_labels.loc[:,"labels_mlb"].values.shape)
 
-            data = data[(temp_labels.rhythms_mlb.apply(lambda x:sum(x)) > 0 ).values]
-            labels = np.array(temp_labels.loc[(temp_labels.rhythms_mlb.apply(lambda x:sum(x)) > 0 ).values,"rhythms_mlb"].values.tolist())
+        data = data[(temp_labels.labels_mlb.apply(lambda x:sum(x)) > 0 ).values]
+        labels = np.array(temp_labels.loc[(temp_labels.labels_mlb.apply(lambda x:sum(x)) > 0 ).values,"labels_mlb"].values.tolist())
 
-            train, test= next(itertools.islice(self.k_fold.split(data,labels), split, None))
-            X_test, y_test = data[test], labels[test]
-            if split != 0:
-                val_split = split - 1
-            else:
-                val_split = self.k_fold.n_splits - 1
-            # for now always have a different validation set
-            train, val= next(itertools.islice(self.k_fold.split(data,labels), val_split, None))
-            X_val, y_val = data[val], labels[val]
-            mask = np.ones(data.shape[0],dtype=bool) # keep only train indices to one
-            mask[test]=0
-            mask[val]=0
-            X_train, y_train = data[mask], labels[mask]
-
+        train, test= next(itertools.islice(self.k_fold.split(data,labels), split, None))
+        X_test, y_test = data[test], labels[test]
+        if split != 0:
+            val_split = split - 1
         else:
-            print(temp_labels.loc[:,"beats_mlb"].values.shape)
-
-            data = data[(temp_labels.beats_mlb.apply(lambda x:sum(x)) > 0 ).values]
-            labels = np.array(temp_labels.loc[(temp_labels.beats_mlb.apply(lambda x:sum(x)) > 0 ).values,"beats_mlb"].values.tolist())
-
-            train, test= next(itertools.islice(self.k_fold.split(data,labels), split, None))
-            X_test, y_test = data[test], labels[test]
-            if split != 0:
-                val_split = split - 1
-            else:
-                val_split = self.k_fold.n_splits - 1
-            # for now always have a different validation set
-            train, val= next(itertools.islice(self.k_fold.split(data,labels), val_split, None))
-            X_val, y_val = data[val], labels[val]
-            mask = np.ones(data.shape[0],dtype=bool) # keep only train indices to one
-            mask[test]=0
-            mask[val]=0
-            X_train, y_train = data[mask], labels[mask]
-
+            val_split = self.k_fold.n_splits - 1
+        # for now always have a different validation set
+        train, val= next(itertools.islice(self.k_fold.split(data,labels), val_split, None))
+        X_val, y_val = data[val], labels[val]
+        mask = np.ones(data.shape[0],dtype=bool) # keep only train indices to one
+        mask[test]=0
+        mask[val]=0
+        X_train, y_train = data[mask], labels[mask]
 
         print(X_test.shape)
         print(X_val.shape)

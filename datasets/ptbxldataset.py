@@ -54,9 +54,9 @@ initial_classes_dict = {
 
 class PTBXLDataset(Dataset):
 
-    def __init__(self): ## classes, segmentation, selected channel
+    def __init__(self, task): ## classes, segmentation, selected channel
         self.name = 'ptb-xl'
-        super(PTBXLDataset, self).__init__()
+        super(PTBXLDataset, self).__init__(task)
         self.path = "./data/"+self.name+"/"
         self.num_channels = 12
         self.patientids = self.get_patientids()
@@ -69,7 +69,7 @@ class PTBXLDataset(Dataset):
         self.index = self.get_index()
 
         self.encoded_labels = self.encode_labels()
-        max_size=22000 # FOr now
+        max_size=2200 # FOr now
         # Load PTB-XL data
         self.data = [self.get_signal(self.path,id) for id in self.index.filename_lr[:max_size]]
         #self.classes_dict = initial_classes_dict[classes]
@@ -113,9 +113,10 @@ class PTBXLDataset(Dataset):
 
     def get_annotation(self, path, idx):
         row = self.index[self.index.filename_lr == idx]
-        labls = [self.morphological_classes[str(l)] for l in row.scp_codes.values[0].keys() if str(l) in self.morphological_classes.keys()] 
-        rhytms =[self.rhythmic_classes[str(l)] for l in row.rhythm.values[0] if str(l) in self.rhythmic_classes.keys()] 
-        return labls, rhytms
+        labls = [self.morphological_classes[str(l)] for l in row.scp_codes.values[0].keys() if str(l) in self.classes.keys()] 
+        rhytms =[self.rhythmic_classes[str(l)] for l in row.rhythm.values[0] if str(l) in self.classes.keys()] 
+        labls.extend(rhytms)
+        return labls
 
     def extract_wave(self, path, idx):
         """
@@ -230,9 +231,9 @@ class PTBXLDataset(Dataset):
         results_df = pd.DataFrame.from_dict({"all":unique_rhythm}, orient='index')
         results_df.to_csv(results_path+os.sep+"ptbxl_distribution_"+self.classes+".csv")
 
-    def get_crossval_splits(self, task="rhythm",split=9):
+    def get_crossval_splits(self, split=9):
 
-        max_size=22000 # FOr now
+        max_size=2200 # FOr now
         data=np.array(self.data, dtype=object)
         temp_labels = self.encoded_labels.iloc[:max_size,:]
         print(temp_labels.shape)
@@ -264,14 +265,9 @@ class PTBXLDataset(Dataset):
         # rest for training
         X_train = np.array(data[train_indices])
 
-        if task=="rhythm":
-            y_test = np.array(temp_labels.loc[test_indices,"rhythms_mlb"].values.tolist())
-            y_val = np.array(temp_labels.loc[val_indices,"rhythms_mlb"].values.tolist())
-            y_train = np.array(temp_labels.loc[train_indices,"rhythms_mlb"].values.tolist())
-        else:
-            y_test = np.array(temp_labels.loc[test_indices,"beats_mlb"].values.tolist())
-            y_val = np.array(temp_labels.loc[val_indices,"beats_mlb"].values.tolist())
-            y_train = np.array(temp_labels.loc[train_indices,"beats_mlb"].values.tolist())
+        y_test = np.array(temp_labels.loc[test_indices,"labels_mlb"].values.tolist())
+        y_val = np.array(temp_labels.loc[val_indices,"labels_mlb"].values.tolist())
+        y_train = np.array(temp_labels.loc[train_indices,"labels_mlb"].values.tolist())
 
         print(y_train.shape)
 

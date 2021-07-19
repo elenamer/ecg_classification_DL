@@ -10,9 +10,9 @@ aami_annots_list=['N','L','R','e','j','S','A','a','J','V','E','F','/','f','Q']
 
 class INCARTDataset(PhysionetDataset):
 
-    def __init__(self): ## classes, segmentation, selected channel
+    def __init__(self, task, lead = 'II'): ## classes, segmentation, selected channel
         self.name = "incartdb"
-        super(INCARTDataset, self).__init__(self.name)
+        super(INCARTDataset, self).__init__(self.name, task)
 
         self.classes = ["N", "S", "V", "F", "Q"]
 
@@ -31,6 +31,8 @@ class INCARTDataset(PhysionetDataset):
         self.stringify_patientids()
 
         self.num_channels = 12
+
+        self.lead = lead 
 
     def stringify_patientids(self):
         self.common_patients = [str(id) for id in self.common_patients]

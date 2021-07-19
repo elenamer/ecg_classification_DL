@@ -1,6 +1,7 @@
 #x:(n_samples, beat_length)
 #y:(n_samples)
 
+from processing.segmentbeats import SegmentBeats
 from datasets.dataset import Dataset
 import os
 import pickle
@@ -56,8 +57,7 @@ def remove_base_gain(ecgsig, gains, bases):
     bases=np.array(bases)
     for i in np.arange(0,np.size(ecgsig,1)):
         sig[:,i]=(sig[:,i] - bases[i]) / gains[i]
-    return sig # nsig is chosen lead
-
+    return sig 
 def segment_beats(choice, ann, signal, beat_len, start_minute, end_minute, fs):
 
     N_SAMPLES_BEFORE_R_static=int(fs/3.6)
@@ -141,9 +141,9 @@ def segment_beats(choice, ann, signal, beat_len, start_minute, end_minute, fs):
 
 class PhysionetDataset(Dataset):
 
-    def __init__(self, name): ## classes, segmentation, selected channel
+    def __init__(self, name, task): ## classes, segmentation, selected channel
         
-        super(PhysionetDataset, self).__init__()
+        super(PhysionetDataset, self).__init__(task)
 
         self.name = name
 
@@ -153,7 +153,6 @@ class PhysionetDataset(Dataset):
         print(self.patientids)
         print(self.common_path)
 
-        self.lead_id = 1 # default: the first one in the list
         #patientids = [os.path.split(id)[-1] for id in patientids]		
 
     def get_patientids(self):
@@ -165,6 +164,28 @@ class PhysionetDataset(Dataset):
             DS2 = f.read().splitlines()
         with open(path_to_db+"RECORDS_TRAIN") as f:
             DS1 = f.read().splitlines()
+
+    def generate_counts(self, task):
+        transf = SegmentBeats(input_size = int(0.72 * self.freq))
+        X, y = self.get_data(task)
+        X, y = transf.process(X, labels=y)
+        groupmap = transf.groupmap
+        temp = pd.DataFrame(y, index=groupmap)
+        temp = temp.groupby(level=0).sum()
+        temp[0] = temp.sum(axis=1)
+        print(temp.values.tolist())
+        return temp.values
+
+    def generate_counts1(self, task):
+        transf = SegmentBeats(input_size = int(0.72 * self.freq))
+        X, y = self.get_data(task)
+        X, y = transf.process(X, labels=y)
+        groupmap = transf.groupmap
+        temp = pd.DataFrame(y, index=groupmap)
+        temp = temp.groupby(level=0).sum()
+        temp[0] = temp.sum(axis=1)
+        return X, y, groupmap
+
 
     '''
 
@@ -183,34 +204,42 @@ class PhysionetDataset(Dataset):
         it's a problem that encode_labels is different than in other datasets
         
         '''
-        mlb_morph = MultiLabelBinarizer(classes=range(len(self.all_morph_classes.values)))
-        mlb_rhy = MultiLabelBinarizer(classes=range(len(self.all_rhy_classes.values)))
+        mlb_rhy = MultiLabelBinarizer(classes=range(len(self.class_names.values)))
         encoded_index = pd.DataFrame(ann.symbol, columns=["orig_label"], index = ann.sample)
         #encoded_index.set_index("FileName", inplace=True)
-        encoded_index["rhythms_mlb"] = ""
-        encoded_index["beats_mlb"] = ""
+        encoded_index["labels_mlb"] = ""
         for ind, sample_ind in enumerate(ann.sample):
             #print(row)        
-            labls = [self.morphological_classes[str(l)] for l in [encoded_index.at[sample_ind, "orig_label"]] if str(l) in self.morphological_classes.keys()] 
-            rhythms =[self.rhythmic_classes[str(l)] for l in [encoded_index.at[sample_ind, "orig_label"]] if str(l) in self.rhythmic_classes.keys()] 
-            encoded_index.at[sample_ind, "beats_mlb"] = tuple(labls)
-            encoded_index.at[sample_ind, "rhythms_mlb"] = tuple(rhythms)
+            rhythms =[self.rhythmic_classes[str(l)] for l in [encoded_index.at[sample_ind, "orig_label"]] if str(l) in self.classes.keys()] 
+            encoded_index.at[sample_ind, "labels_mlb"] = tuple(rhythms)
             #print(tuple(rhythms))
 
-        encoded_index["beats_mlb"] = mlb_morph.fit_transform(encoded_index["beats_mlb"]).tolist()
-        #print(encoded_index["beats_mlb"])
-        encoded_index["rhythms_mlb"] = mlb_rhy.fit_transform(encoded_index["rhythms_mlb"]).tolist()
-        #print(encoded_index["rhythms_mlb"])
-        encoded_index = encoded_index[["beats_mlb","rhythms_mlb"]]
+        encoded_index["labels_mlb"] = mlb_rhy.fit_transform(encoded_index["labels_mlb"]).tolist()
+        #print(encoded_index["labels_mlb"])
+        encoded_index = encoded_index[["labels_mlb"]]
         #print(encoded_index)
 
-        encoded_index = encoded_index[(encoded_index.beats_mlb.apply(lambda x:sum(x)) > 0).values]
+        encoded_index = encoded_index[(encoded_index.labels_mlb.apply(lambda x:sum(x)) > 0).values]
+
         return encoded_index
 
 
     def get_signal(self, path, idx):
         data, metadata = wfdb.rdsamp(path+idx)
-        return data[:,self.lead_id]
+        print(metadata['sig_name'])
+        lead_names = self.lead.split("-")
+        if len(lead_names) == 1:
+            if lead_names[0] in metadata['sig_name']:
+                lead_ind = metadata['sig_name'].index(lead_names[0])
+            elif ("ML"+lead_names[0]) in metadata['sig_name']:
+                lead_ind = metadata['sig_name'].index("ML"+lead_names[0])
+            else:
+                lead_ind = 0
+            sig = data[:,lead_ind]
+        else:
+            #  should do the same here 
+            sig = data[:,metadata['sig_name'].index(lead_names[0])] - data[:,metadata['sig_name'].index(lead_names[1])]
+        return sig
 
 
     def smt(self, indices, labels):
@@ -230,7 +259,43 @@ class PhysionetDataset(Dataset):
         encoded_index = self.encode_labels(ann)
         return encoded_index
 
-    def get_crossval_splits(self, task="rhythm",split=9):
+
+    def get_data(self):
+        # only to be used for optimizer for now, should be changed/improved
+        max_size=50 # FOr now, should remove this
+        # Load PTB-XL data
+        X = [self.get_signal(self.path,id) for id in self.patientids[:max_size]]
+
+                       
+        X=np.array(X)
+
+        y = [self.get_annotation(self.path,id) for id in self.patientids[:max_size]]
+        
+        '''
+            old: self.encoded_labels.iloc[:max_size,:]
+
+            this here needs to be custom to physionet 
+
+        '''    
+        
+        print("before")
+        # Preprocess label data
+
+        y = [df["labels_mlb"] for df in y]
+
+        print(X.shape)
+
+        # Preprocess signal data
+        #self.X_train, self.X_val, self.X_test = preprocess_signals(self.X_train, self.X_val, self.X_test, self.outputfolder+self.experiment_name+'/data/')
+        # self.n_classes = self.y_train.shape[1]
+        # partition = {"train": self.y_test.filename_lr.values.tolist() ,"validation":self.y_test.filename_lr.values.tolist(), "test":self.y_test.filename_lr.values.tolist()}
+        print(len(y))# print(y_test.shape)
+        # print(y_train.shape)
+        # print(y_val.shape)
+        return X, y
+
+
+    def get_crossval_splits(self, split=9):
         max_size=50 # FOr now, should remove this
         # Load PTB-XL data
         X_train = [self.get_signal(self.path,id) for id in self.ds1_patients_train[:max_size]]
@@ -256,14 +321,9 @@ class PhysionetDataset(Dataset):
         print("before")
         # Preprocess label data
 
-        if task=="rhythm":
-            y_train = [df["rhythms_mlb"] for df in y_train]
-            y_test = [df["rhythms_mlb"] for df in y_test]
-            y_val = [df["rhythms_mlb"] for df in y_val]
-        else:
-            y_train = [df["beats_mlb"] for df in y_train]
-            y_test = [df["beats_mlb"] for df in y_test]
-            y_val = [df["beats_mlb"] for df in y_val]
+        y_train = [df["labels_mlb"] for df in y_train]
+        y_test = [df["labels_mlb"] for df in y_test]
+        y_val = [df["labels_mlb"] for df in y_val]
 
         print(X_test.shape)
         print(X_val.shape)

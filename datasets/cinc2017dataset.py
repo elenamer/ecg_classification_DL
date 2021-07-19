@@ -23,9 +23,9 @@ WFDB = "/usr/local/bin"#/home/elena/wfdb/bin"
 
 class CincChallenge2017Dataset(Dataset):
 
-    def __init__(self): ## classes, segmentation, selected channel
+    def __init__(self, task): ## classes, segmentation, selected channel
         self.name = 'cinc2017'#name
-        super(CincChallenge2017Dataset, self).__init__()
+        super(CincChallenge2017Dataset, self).__init__(task)
         self.path = "./data/"+self.name
         self.patientids = self.get_recordids()
         self.index = self.get_index()
@@ -86,12 +86,13 @@ class CincChallenge2017Dataset(Dataset):
     def get_annotation(self, path, idx):
         row = self.index[self.index.ID==idx]
         beats = [row.Label.values[0]]
-        labls = [self.morphological_classes[str(l)] for l in beats if str(l) in self.morphological_classes.keys()]
-        rhytms = [self.rhythmic_classes[str(l)] for l in beats if str(l) in self.rhythmic_classes.keys()]
-        return labls, rhytms
+        labls = [self.morphological_classes[str(l)] for l in beats if str(l) in self.classes.keys()]
+        rhytms = [self.rhythmic_classes[str(l)] for l in beats if str(l) in self.classes.keys()]
+        labls.extend(rhytms)
+        return labls
             
 
-    def get_crossval_splits(self, task="rhythm",split=9):
+    def get_crossval_splits(self, split=9):
         max_size=2200 # FOr now
         # Load PTB-XL data
         data = [self.get_signal(self.path+os.sep+'training2017',id) for id in self.index.index[:max_size]]
@@ -101,45 +102,24 @@ class CincChallenge2017Dataset(Dataset):
         print("before")
         # Preprocess label data
 
-        if task=="rhythm":
-            print(temp_labels.loc[:,"rhythms_mlb"].values.shape)
+        print(temp_labels.loc[:,"labels_mlb"].values.shape)
 
-            data = data[(temp_labels.rhythms_mlb.apply(lambda x:sum(x)) > 0 ).values]
-            labels = np.array(temp_labels.loc[(temp_labels.rhythms_mlb.apply(lambda x:sum(x)) > 0 ).values,"rhythms_mlb"].values.tolist())
+        data = data[(temp_labels.labels_mlb.apply(lambda x:sum(x)) > 0 ).values]
+        labels = np.array(temp_labels.loc[(temp_labels.labels_mlb.apply(lambda x:sum(x)) > 0 ).values,"labels_mlb"].values.tolist())
 
-            train, test= next(itertools.islice(self.k_fold.split(data,labels), split, None))
-            X_test, y_test = data[test], labels[test]
-            if split != 0:
-                val_split = split - 1
-            else:
-                val_split = self.k_fold.n_splits - 1
-            # for now always have a different validation set
-            train, val= next(itertools.islice(self.k_fold.split(data,labels), val_split, None))
-            X_val, y_val = data[val], labels[val]
-            mask = np.ones(data.shape,dtype=bool) # keep only train indices to one
-            mask[test]=0
-            mask[val]=0
-            X_train, y_train = data[mask], labels[mask]
-
+        train, test= next(itertools.islice(self.k_fold.split(data,labels), split, None))
+        X_test, y_test = data[test], labels[test]
+        if split != 0:
+            val_split = split - 1
         else:
-            print(temp_labels.loc[:,"beats_mlb"].values.shape)
-
-            data = data[(temp_labels.beats_mlb.apply(lambda x:sum(x)) > 0 ).values]
-            labels = np.array(temp_labels.loc[(temp_labels.beats_mlb.apply(lambda x:sum(x)) > 0 ).values,"beats_mlb"].values.tolist())
-            
-            train, test= next(itertools.islice(self.k_fold.split(data,labels), split, None))
-            X_test, y_test = data[test], labels[test]
-            if split != 0:
-                val_split = split - 1
-            else:
-                val_split = self.k_fold.n_splits - 1
-            # for now always have a different validation set
-            train, val= next(itertools.islice(self.k_fold.split(data,labels), val_split, None))
-            X_val, y_val = data[val], labels[val]
-            mask = np.ones(data.shape,dtype=bool) # keep only train indices to one
-            mask[test]=0
-            mask[val]=0
-            X_train, y_train = data[mask], labels[mask]
+            val_split = self.k_fold.n_splits - 1
+        # for now always have a different validation set
+        train, val= next(itertools.islice(self.k_fold.split(data,labels), val_split, None))
+        X_val, y_val = data[val], labels[val]
+        mask = np.ones(data.shape,dtype=bool) # keep only train indices to one
+        mask[test]=0
+        mask[val]=0
+        X_train, y_train = data[mask], labels[mask]
 
         print(X_test.shape)
         print(X_val.shape)

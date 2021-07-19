@@ -16,20 +16,20 @@ import itertools
 choices = ['_train','_test']
 choice = ''
 results_path = "./data_overviews"
+leads = [ 'I','II', 'III', 'aVL','aVF', 'V1','V2','V3','V4','V5','V6']
 
 #sampling_rate=200
 
 class CPSC2018Dataset(Dataset):
 
-    def __init__(self): ## classes, segmentation, selected channel
+    def __init__(self, task, lead='II'): ## classes, segmentation, selected channel
         self.name = 'cpsc2018'#name
-        super(CPSC2018Dataset, self).__init__()
+        super(CPSC2018Dataset, self).__init__(task)
         self.path = "./data/"+self.name
         #with open(self.path+"RECORDS"+choice.upper()) as f:
 
 
-        self.lead = "II"
-        self.lead_id = 1 # temp, this is actually determined in extract_metadata
+        self.lead = lead
         self.freq = 500
         self.index = []
 
@@ -49,15 +49,25 @@ class CPSC2018Dataset(Dataset):
     def get_signal(self, path, idx):
         # implement ecg signal extraction
         sex, age, sig = loadmat(path+os.sep+"TrainingSet"+os.sep+idx+".mat")['ECG'][0][0] 
-        return sig.T[:,self.lead_id]
+        lead_names = self.lead.split("-")
+        if len(lead_names) == 1:
+            signal = sig.T[:,leads.index(lead_names[0])]
+        else:
+            signal = sig.T[:,leads.index(lead_names[0])] - sig.T[:,leads.index(lead_names[1])]
+        # plt.plot(signal)
+        # plt.show()
+        # plt.plot(sig.T[:,leads.index('II')])
+        # plt.show()
+        return signal
 
     def get_annotation(self, path, idx):
         row=self.index[self.index.index==idx]
         #print(row)
         beats = [row.First_label.values[0], row.Second_label.values[0], row.Third_label.values[0]]
-        labls = [self.morphological_classes[str(int(l))] for l in beats if not np.isnan(l) and str(int(l)) in self.morphological_classes.keys()]
-        rhytms = [self.rhythmic_classes[str(int(l))] for l in beats if not np.isnan(l) and str(int(l)) in self.rhythmic_classes.keys()]
-        return labls, rhytms
+        labls = [self.morphological_classes[str(int(l))] for l in beats if not np.isnan(l) and str(int(l)) in self.classes.keys()]
+        rhytms = [self.rhythmic_classes[str(int(l))] for l in beats if not np.isnan(l) and str(int(l)) in self.classes.keys()]
+        labls.extend(rhytms)
+        return labls
 
     # def get_index(self):
     #     self.index = Y
@@ -78,7 +88,7 @@ class CPSC2018Dataset(Dataset):
         results_df.to_csv(results_path+os.sep+self.name+"_distribution.csv")
     
 
-    def get_crossval_splits(self, task="rhythm",split=9):
+    def get_crossval_splits(self, split=9):
         max_size=len(self.patientids)
         data=np.array(self.data, dtype=object)
         temp_labels = self.encoded_labels.iloc[:max_size,:]
@@ -86,45 +96,25 @@ class CPSC2018Dataset(Dataset):
         print("before")
         # Preprocess label data
 
-        if task=="rhythm":
-            print(temp_labels.loc[:,"rhythms_mlb"].values.shape)
+        print(temp_labels.loc[:,"labels_mlb"].values.shape)
 
-            data = data[(temp_labels.rhythms_mlb.apply(lambda x:sum(x)) > 0 ).values]
-            labels = np.array(temp_labels.loc[(temp_labels.rhythms_mlb.apply(lambda x:sum(x)) > 0 ).values,"rhythms_mlb"].values.tolist())
+        data = data[(temp_labels.labels_mlb.apply(lambda x:sum(x)) > 0 ).values]
+        labels = np.array(temp_labels.loc[(temp_labels.labels_mlb.apply(lambda x:sum(x)) > 0 ).values,"rhythms_mlb"].values.tolist())
 
-            train, test= next(itertools.islice(self.k_fold.split(data,labels), split, None))
-            X_test, y_test = data[test], labels[test]
-            if split != 0:
-                val_split = split - 1
-            else:
-                val_split = self.k_fold.n_splits - 1
-            # for now always have a different validation set
-            train, val= next(itertools.islice(self.k_fold.split(data,labels), val_split, None))
-            X_val, y_val = data[val], labels[val]
-            mask = np.ones(data.shape[0],dtype=bool) # keep only train indices to one
-            mask[test]=0
-            mask[val]=0
-            X_train, y_train = data[mask], labels[mask]
+        train, test= next(itertools.islice(self.k_fold.split(data,labels), split, None))
+        X_test, y_test = data[test], labels[test]
+        if split != 0:
+            val_split = split - 1
         else:
-            print(temp_labels.loc[:,"beats_mlb"].values.shape)
-
-            data = data[(temp_labels.beats_mlb.apply(lambda x:sum(x)) > 0 ).values]
-            labels = np.array(temp_labels.loc[(temp_labels.beats_mlb.apply(lambda x:sum(x)) > 0 ).values,"beats_mlb"].values.tolist())
-
-            train, test= next(itertools.islice(self.k_fold.split(data,labels), split, None))
-            X_test, y_test = data[test], labels[test]
-            if split != 0:
-                val_split = split - 1
-            else:
-                val_split = self.k_fold.n_splits - 1
-            # for now always have a different validation set
-            train, val= next(itertools.islice(self.k_fold.split(data,labels), val_split, None))
-            X_val, y_val = data[val], labels[val]
-            mask = np.ones(data.shape[0],dtype=bool) # keep only train indices to one
-            mask[test]=0
-            mask[val]=0
-            X_train, y_train = data[mask], labels[mask]
-
+            val_split = self.k_fold.n_splits - 1
+        # for now always have a different validation set
+        train, val= next(itertools.islice(self.k_fold.split(data,labels), val_split, None))
+        X_val, y_val = data[val], labels[val]
+        mask = np.ones(data.shape[0],dtype=bool) # keep only train indices to one
+        mask[test]=0
+        mask[val]=0
+        X_train, y_train = data[mask], labels[mask]
+ 
         print(X_test.shape)
         print(X_val.shape)
 

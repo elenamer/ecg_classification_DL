@@ -24,7 +24,7 @@ RELABEL = {"NSR": "SINUS", "SUDDEN_BRADY": "AVB",
 
 class iRhythmTestDataset():
 
-    def __init__(self): ## classes, segmentation, selected channel
+    def __init__(self, task): ## classes, segmentation, selected channel
         self.name = 'irhythm-test'#name
         self.path = "./data/irhythm-test"
         self.patientids = self.get_recordids()

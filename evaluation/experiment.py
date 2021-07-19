@@ -47,7 +47,7 @@ def evaluate_metrics(confusion_matrix):
 
 class Experiment():
     def __init__(self, dataset, transform, input_seconds, model, task, evaluation_strategy, epochs, save_model = False):
-        self.dataset = dataset()
+        self.dataset = dataset(task)
         self.fs = self.dataset.freq
         self.input_size = int(input_seconds*self.fs)
         self.transform = transform(self.input_size) # connected with input_size
@@ -90,7 +90,7 @@ class Experiment():
             else:
                 self.classifier = self.model(n_classes=len(self.classes), freq=self.fs, outputfolder=self.path+os.sep+str(n))
             print(n)
-            X_train, Y_train, X_val, Y_val, X_test, Y_test = self.dataset.get_crossval_splits(split=n, task = self.task)
+            X_train, Y_train, X_val, Y_val, X_test, Y_test = self.dataset.get_crossval_splits(split=n)
             
 
             self.transform.reset_idmap()
@@ -133,8 +133,6 @@ class Experiment():
                 self.classifier.save(self.path+os.sep+str(n)+os.sep+"model")
 
             run.finish()
-
-
 
     def evaluate(self):
 

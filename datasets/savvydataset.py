@@ -11,9 +11,9 @@ aami_annots_list=['N','L','R','e','j','S','A','a','J','V','E','F','/','f','Q']
 
 
 class SavvyDataset(PhysionetDataset):
-    def __init__(self): ## classes, segmentation, selected channel
+    def __init__(self, task): ## classes, segmentation, selected channel
         self.name="savvydb"
-        super(SavvyDataset, self).__init__(self.name)
+        super(SavvyDataset, self).__init__(self.name, task)
 
         self.classes = ["N", "S", "V", "F", "Q"]
         self.common_path = "./data/mitdb/"

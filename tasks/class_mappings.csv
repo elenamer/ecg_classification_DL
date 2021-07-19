@@ -1,0 +1,12 @@
+,N,RBBB,LBBB,j,e,PAC,J,PVC,VEB,SINUS,AFIB,AFL,SVTA,VT,AVB1,2AVB,AVB3,SBRAD,STACH,BIGU,TRIGU,NOISE,IVB,IVR,EAR,JUNCT,WPW,WAP,AB
+mitdb,N,R,L,j,e,"A, S",J,V,E,(N,(AFIB,(AFL,(SVTA,(VT,,(BII,,(SBR,,(B,(T,,,,,(NOD,,,(AB
+incartdb,N,R,L,j,e,"A, S",J,V,E,(N,(AFIB,(AFL,(SVTA,(VT,,(BII,,(SBR,,(B,(T,,,,,(NOD,(PREX,,(AB
+svdb,N,R,L,j,e,"A, S",J,V,E,(N,(AFIB,(AFL,(SVTA,(VT,,(BII,,(SBR,,(B,(T,,,,,(NOD,,,(AB
+afdb,N,R,L,j,e,"A, S",J,V,E,(N,(AFIB,(AFL,(SVTA,(VT,,(BII,,(SBR,,(B,(T,,,,,(NOD,,,(AB
+ltafdb,N,R,L,j,e,"A, S",J,V,E,(N,(AFIB,(AFL,(SVTA,(VT,,(BII,,(SBR,,(B,(T,,,,,(NOD,,,(AB
+savvydb,N,R,L,j,e,"A, S",J,V,E,(N,(AFIB,(AFL,(SVTA,(VT,,(BII,,(SBR,,,,,,,,,,,
+irhythm-test,,,,,,,,,,SINUS,AFIB,AFL,SVT,VT,,"WENCKEBACH, AVBTYPE2",CHB,,,BIGEMINY,BIGEMINY,NOISE,IVB,IVR,EAR,JUNCTIONAL,,,
+cpsc2018,"Normal, 1","RBBB, 5","LBBB, 4",,,"PAC, 6",,"PVC, 7",,,"AF, 2",,,,"I-AVB, 3",,,,,,,,,,,,,,
+arr10000,NONE,RBBB,"LBBB, LBBBB, LFBBB",JEB,,APB,JPT,VPB,,SR,AFIB,AF,SVT,,,"2AVB1, 2AVB2",3AVB,SB,ST,VB,,,,,,,,SAAWR,
+cinc2017,N,,,,,,,,,N,A,,,,,,,,,,,~,,,,,,,
+ptb-xl,NORM,"CRBBB, IRBBB","CLBBB, ILBBB",,,"PAC, SVARR",,PVC,,SR,AFIB,AFLT,"SVTAC, PSVT",,1AVB,2AVB,3AV,SBRAD,STACH,BIGU,TRIGU,,,,,,WPW,WAVN,ABI
