@@ -46,7 +46,7 @@ def evaluate_metrics(confusion_matrix):
 
 
 class Experiment():
-    def __init__(self, dataset, transform, input_seconds, model, task, evaluation_strategy, epochs, save_model = False):
+    def __init__(self, dataset, transform, input_seconds, model, task, evaluation_strategy, epochs, aggregate = False, save_model = False):
         self.dataset = dataset(task)
         self.fs = self.dataset.freq
         self.input_size = int(input_seconds*self.fs)
@@ -57,10 +57,8 @@ class Experiment():
         if model_name == "wavelet":
             self.is_dnn=False
         self.task = task
-        if task == "rhythm":
-            self.classes = self.dataset.all_rhy_classes
-        else:
-            self.classes = self.dataset.all_morph_classes
+
+        self.classes = self.dataset.classes
         self.eval = evaluation_strategy
 
         self.path = "experiments"+os.sep+self.dataset.name+os.sep+self.transform.name+str(self.input_size)+os.sep+model_name+os.sep+self.task  
@@ -69,7 +67,7 @@ class Experiment():
         self.name = self.dataset.name+"_"+self.transform.name+str(self.input_size)+"_"+model_name+"_"+self.task  
 
         self.epochs = epochs
-        self.aggregate = True
+        self.aggregate = aggregate
     
     def run(self):
 
@@ -106,7 +104,7 @@ class Experiment():
             Y_val.dump(self.path+os.sep+str(n)+os.sep+"Y_val.npy") 
             Y_train.dump(self.path+os.sep+str(n)+os.sep+"Y_train.npy") 
 
-            self.classifier.fit(x=X_train,y=Y_train, validation_data = (X_val, Y_val))
+            times = self.classifier.fit(x=X_train,y=Y_train, validation_data = (X_val, Y_val))
 
             Y_test_pred = self.classifier.predict(X_test)
             Y_test_pred.dump(self.path+os.sep+str(n)+os.sep+"Y_test_pred.npy") 
@@ -114,6 +112,8 @@ class Experiment():
             Y_val_pred.dump(self.path+os.sep+str(n)+os.sep+"Y_val_pred.npy") 
             Y_train_pred = self.classifier.predict(X_train)
             Y_train_pred.dump(self.path+os.sep+str(n)+os.sep+"Y_train_pred.npy") 
+
+            np.array(times).dump(self.path+os.sep+str(n)+os.sep+"epoch_times.npy") 
 
             if self.aggregate:
                 Y_train_pred_agg = self.transform.aggregate_labels(Y_train_pred, idmap_train)
@@ -147,6 +147,7 @@ class Experiment():
         auc_val_scores = []
         f1_test_scores = []
         f1_val_scores = []
+        all_epoch_times = []
 
         for n in range(self.dataset.k_fold.get_n_splits()):
 
@@ -158,7 +159,9 @@ class Experiment():
             y_train_pred = np.load(self.path+os.sep+str(n)+os.sep+'Y_train_pred.npy', allow_pickle=True)
             y_val_pred = np.load(self.path+os.sep+str(n)+os.sep+'Y_val_pred.npy', allow_pickle=True)
             y_test_pred = np.load(self.path+os.sep+str(n)+os.sep+'Y_test_pred.npy', allow_pickle=True)
-            
+
+            epoch_times = np.load(self.path+os.sep+str(n)+os.sep+'epoch_times.npy', allow_pickle=True)
+
             labels = np.argwhere(y_train.sum(axis=0) > 0 )
       
             print(labels)
@@ -199,6 +202,7 @@ class Experiment():
 
                 f1_test_scores.append(f1_test)
                 f1_val_scores.append(f1_val)
+            all_epoch_times.extend(epoch_times)
 
         results_dict["auc"] = {"test": { 
             "mean" : np.mean(np.array(auc_test_scores)),
@@ -219,6 +223,11 @@ class Experiment():
             "mean" : np.mean(np.array(f1_val_scores)),
             "var"  : np.var(np.array(f1_val_scores))
         }, 
+        }
+        results_dict["time"] = {"epoch": { 
+            "mean" : np.mean(np.array(all_epoch_times)),
+            "var"  : np.var(np.array(all_epoch_times))
+        }
         }
         print(results_dict)
 
