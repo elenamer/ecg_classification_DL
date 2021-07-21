@@ -1,6 +1,6 @@
 import tensorflow as tf
 import os
-from .metriccallbacks import AUCMetric, F1Metric
+from .metriccallbacks import AUCMetric, F1Metric, TimeHistory
 from wandb.keras import WandbCallback
 import numpy as np
 
@@ -36,6 +36,7 @@ class Classifier(tf.keras.Model):
         return x
     
     def fit(self, x, y, validation_data):
+        time_callback = TimeHistory()
 
         es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
         wandb_cb = WandbCallback(save_weights_only=True)
@@ -46,8 +47,9 @@ class Classifier(tf.keras.Model):
         log_f1 = F1Metric(train=(x, y), validation=(X_val, y_val), path=self.path+os.sep+"models")
         log_auc = AUCMetric(train=(x, y), validation=(X_val, y_val), path=self.path+os.sep+"models")
 
-        super(Classifier, self).fit(x, y, validation_data = (X_val, y_val), callbacks = [es, wandb_cb, log_f1, log_auc], epochs = self.epochs, batch_size=128)
-
+        super(Classifier, self).fit(x, y, validation_data = (X_val, y_val), callbacks = [es, wandb_cb, log_f1, log_auc, time_callback], epochs = self.epochs, batch_size=128)
+        times = time_callback.times
+        return times
     # def predict(self, X, y):
     #     # y is only R-peak locations in this case
 

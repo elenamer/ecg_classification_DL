@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 from sklearn.metrics import f1_score, roc_auc_score
+from time import time
 
 ### Defining the Callback Metrics
 class MetricCallback(tf.keras.callbacks.Callback):
@@ -98,4 +99,12 @@ class AUCMetric(MetricCallback):
         val_auc = round(roc_auc_score(val_targ[:,(labels[:,0])], val_predict[:,(labels[:,0])], average='macro'), 6)
         return train_auc, val_auc
 
-        
+class TimeHistory(tf.keras.callbacks.Callback):
+    def on_train_begin(self, logs={}):
+        self.times = []
+
+    def on_epoch_begin(self, batch, logs={}):
+        self.epoch_time_start = time.time()
+
+    def on_epoch_end(self, batch, logs={}):
+        self.times.append(time.time() - self.epoch_time_start)
