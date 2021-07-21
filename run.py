@@ -29,33 +29,35 @@ from evaluation.experiment import Experiment
 # exp2.evaluate()
 
 for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), (WaveletModel, 10) ]:
-    for task in ["rhythm", "form"]:
-        if sec > 30:
-            exp3 = Experiment(CPSC2018Dataset, Transform, sec, model, task, 'inter', 100) # learning parameters not passed for now?
-                                                                                            # do they depend on dataset? on model?
-            exp3.run()
-            exp3.evaluate()
+    task="form"
+    if sec > 30:
+        exp3 = Experiment(CPSC2018Dataset, Transform, sec, model, task, 'inter', 100) # learning parameters not passed for now?
+                                                                                        # do they depend on dataset? on model?
+        exp3.run()
+        exp3.evaluate()
 
-            exp4 = Experiment(CPSC2018Dataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
-                                                                                            # do they depend on dataset? on model?
-            exp4.run()
-            exp4.evaluate()
+        exp4 = Experiment(CPSC2018Dataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
+                                                                                        # do they depend on dataset? on model?
+        exp4.run()
+        exp4.evaluate()
 
-        else:
-            exp3 = Experiment(CPSC2018Dataset, Transform, 60, model, task, 'inter', 100) # learning parameters not passed for now?
-                                                                                            # do they depend on dataset? on model?
-            exp3.run()
-            exp3.evaluate()
+    else:
+        exp3 = Experiment(CPSC2018Dataset, Transform, 60, model, task, 'inter', 100) # learning parameters not passed for now?
+                                                                                        # do they depend on dataset? on model?
+        exp3.run()
+        exp3.evaluate()
 
-            exp4 = Experiment(CPSC2018Dataset, SlidingWindow, sec, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
-                                                                                            # do they depend on dataset? on model?
-            exp4.run()
-            exp4.evaluate()      
+        exp4 = Experiment(CPSC2018Dataset, SlidingWindow, sec, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
+                                                                                        # do they depend on dataset? on model?
+        exp4.run()
+        exp4.evaluate()      
 
-            exp4 = Experiment(CPSC2018Dataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
-                                                                                            # do they depend on dataset? on model?
-            exp4.run()
-            exp4.evaluate()      
+        exp4 = Experiment(CPSC2018Dataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
+                                                                                        # do they depend on dataset? on model?
+        exp4.run()
+        exp4.evaluate()
+
+    for task in ["rhythm", "form"]:      
 
         if sec > 10: 
 
