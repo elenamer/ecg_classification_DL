@@ -60,7 +60,6 @@ class PTBXLDataset(Dataset):
         self.path = "./data/"+self.name+"/"
         self.num_channels = 12
         self.patientids = self.get_patientids()
-        self.classes='rhythm'
 
         self.freq = 100
         self.lead = "II"
@@ -88,7 +87,7 @@ class PTBXLDataset(Dataset):
         ## modify this function 
 
         self.labels = compute_label_aggregations(self.raw_labels, self.path, self.classes)
-        data, self.labels, self.Y, _ = select_data(data, self.labels, self.classes, 0, self.path+'exprs/data/')
+        data, self.labels, self.Y, _ = select_data(data, self.labels, 'rhythm', 0, self.path+'exprs/data/')
 
 
         # # load and convert annotation data
@@ -113,8 +112,8 @@ class PTBXLDataset(Dataset):
 
     def get_annotation(self, path, idx):
         row = self.index[self.index.filename_lr == idx]
-        labls = [self.morphological_classes[str(l)] for l in row.scp_codes.values[0].keys() if str(l) in self.classes.keys()] 
-        rhytms =[self.rhythmic_classes[str(l)] for l in row.rhythm.values[0] if str(l) in self.classes.keys()] 
+        labls = [self.classes[str(l)] for l in row.scp_codes.values[0].keys() if str(l) in self.classes.keys()] 
+        rhytms =[self.classes[str(l)] for l in row.rhythm.values[0] if str(l) in self.classes.keys()] 
         labls.extend(rhytms)
         return labls
 

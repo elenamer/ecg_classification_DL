@@ -14,7 +14,7 @@ class INCARTDataset(PhysionetDataset):
         self.name = "incartdb"
         super(INCARTDataset, self).__init__(self.name, task)
 
-        self.classes = ["N", "S", "V", "F", "Q"]
+        # self.classes = ["N", "S", "V", "F", "Q"]
 
         # for patient-specific
         

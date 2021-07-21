@@ -15,7 +15,7 @@ class LongTermAFDataset(PhysionetDataset):
         self.name = "ltafdb"
         super(LongTermAFDataset, self).__init__(self.name, task)
 
-        self.classes = ["N", "S", "V", "F", "Q"]
+        #self.classes = ["N", "S", "V", "F", "Q"]
 
         # for patient-specific
         

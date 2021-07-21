@@ -151,8 +151,11 @@ class Dataset():
 
         # load and convert annotation data
         if list_classes is None:
-            list_classes = np.array(self.encoded_labels.labels_mlb.values.tolist())
- 
+            try:
+                list_classes = np.array(self.encoded_labels.labels_mlb.values.tolist())
+            except AttributeError:
+                list_classes = None
+
         results_df = self.get_class_distributions(list_classes)
 
         classes = pd.DataFrame(np.zeros((1, len(self.class_names))),columns=[str(i) for i in range(len(self.class_names))]) #results_df_lab.loc['all',:] 
@@ -168,9 +171,17 @@ class Dataset():
 
         classes.to_csv(results_path+os.sep+self.name+"_"+self.task+"_distribution.csv")
 
-        ax = sns.barplot(x = self.class_names,y = classes.values.flatten())
-        ax.set_title(self.task+" class distribution for "+self.name+" Dataset")
-        plt.show()
+        #ax = sns.barplot(x = self.class_names,y = classes.values.flatten())
+        #ax.set_title(self.task+" class distribution for "+self.name+" Dataset")
+        #plt.show()
 
-        self.multilabel_distribution_tables()
-
+        '''
+        TEMPORARY: Not needed
+        
+        '''
+        # self.multilabel_distribution_tables()
+        
+        
+        classes.columns = self.class_names
+        classes.index = [self.name]
+        return classes

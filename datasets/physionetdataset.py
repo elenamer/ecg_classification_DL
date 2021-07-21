@@ -153,6 +153,7 @@ class PhysionetDataset(Dataset):
         print(self.patientids)
         print(self.common_path)
 
+        #self.k_fold_crossval()
         #patientids = [os.path.split(id)[-1] for id in patientids]		
 
     def get_patientids(self):
@@ -165,21 +166,22 @@ class PhysionetDataset(Dataset):
         with open(path_to_db+"RECORDS_TRAIN") as f:
             DS1 = f.read().splitlines()
 
-    def generate_counts(self, task):
+    def generate_counts(self):
         transf = SegmentBeats(input_size = int(0.72 * self.freq))
-        X, y = self.get_data(task)
-        X, y = transf.process(X, labels=y)
+        X, y = self.get_data()
+        X, y, idmap = transf.process(X, labels=y)
         groupmap = transf.groupmap
         temp = pd.DataFrame(y, index=groupmap)
         temp = temp.groupby(level=0).sum()
         temp[0] = temp.sum(axis=1)
+        print("tamp values print")
         print(temp.values.tolist())
         return temp.values
 
-    def generate_counts1(self, task):
+    def generate_counts1(self):
         transf = SegmentBeats(input_size = int(0.72 * self.freq))
-        X, y = self.get_data(task)
-        X, y = transf.process(X, labels=y)
+        X, y = self.get_data()
+        X, y, idmap = transf.process(X, labels=y)
         groupmap = transf.groupmap
         temp = pd.DataFrame(y, index=groupmap)
         temp = temp.groupby(level=0).sum()
@@ -210,7 +212,7 @@ class PhysionetDataset(Dataset):
         encoded_index["labels_mlb"] = ""
         for ind, sample_ind in enumerate(ann.sample):
             #print(row)        
-            rhythms =[self.rhythmic_classes[str(l)] for l in [encoded_index.at[sample_ind, "orig_label"]] if str(l) in self.classes.keys()] 
+            rhythms =[self.classes[str(l)] for l in [encoded_index.at[sample_ind, "orig_label"]] if str(l) in self.classes.keys()] 
             encoded_index.at[sample_ind, "labels_mlb"] = tuple(rhythms)
             #print(tuple(rhythms))
 
@@ -344,10 +346,8 @@ class PhysionetDataset(Dataset):
         use wfdb python to extrct annotation and wave
     '''
 
-    def get_class_distributions(self):
+    def get_class_distributions(self, list_classes):
         print(self.patientids)
-        print(self.rhythmic_classes)
-        print(self.morphological_classes)
         mydict_labels = {}
         mydict_rhythms = {}
         labels=[]
@@ -358,33 +358,25 @@ class PhysionetDataset(Dataset):
             ann=np.array(ann)
             #print(ann[0])
             annot=ann[:,2]
-            annot = [self.morphological_classes[a] for a in annot if a in self.morphological_classes.keys()]
+            annot = [self.classes[a] for a in annot if a in self.classes.keys()]
             unique_labels = Counter(annot)
 
             rhythm_labels = ann[:,6]
             #print(rhythm_labels)
-            rhythm_labels = [self.rhythmic_classes[l] for l in rhythm_labels if l in self.rhythmic_classes.keys()]
+            rhythm_labels = [self.classes[l] for l in rhythm_labels if l in self.classes.keys()]
 
             unique_rhythm = Counter(rhythm_labels)
-            #unique_labels.update(unique_rhythm)
+            unique_labels.update(unique_rhythm)
             ind_seg=0
             mydict_labels[id]=unique_labels
-            mydict_rhythms[id]=unique_rhythm
             #print(mydict_rhythms)
             labels+=list(unique_labels.keys())
-            rhythms+=list(unique_rhythm.keys())
         labels=set(labels)
-        rhythms=set(rhythms)
         results_df_lab=pd.DataFrame.from_dict(mydict_labels, orient='index')
-        results_df_rhy=pd.DataFrame.from_dict(mydict_rhythms, orient='index')
         results_df_lab.loc['all',:] = results_df_lab.sum()
         #results_df_lab.to_csv(results_path+os.sep+self.name+"_morphological_distribution.csv")
 
-        results_df_rhy.loc['all',:] = results_df_rhy.sum()
-        #results_df_rhy.to_csv(results_path+os.sep+self.name+"_rhythmic_distribution.csv")
-
-        return results_df_lab.loc['all',:], results_df_rhy.loc['all',:]
-
+        return results_df_lab.loc['all',:]
 
     def extract_metadata(self, path, idx):
         infoName=path+os.sep+idx+'.hea'

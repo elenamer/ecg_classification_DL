@@ -15,7 +15,7 @@ class MITBIHSVDataset(PhysionetDataset):
         self.name= name
         super(MITBIHSVDataset, self).__init__(name, task)
 
-        self.classes = ["N", "S", "V", "F", "Q"]
+        #self.classes = ["N", "S", "V", "F", "Q"]
 
 
         # for patient-specific

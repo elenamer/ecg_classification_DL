@@ -86,8 +86,8 @@ class CincChallenge2017Dataset(Dataset):
     def get_annotation(self, path, idx):
         row = self.index[self.index.ID==idx]
         beats = [row.Label.values[0]]
-        labls = [self.morphological_classes[str(l)] for l in beats if str(l) in self.classes.keys()]
-        rhytms = [self.rhythmic_classes[str(l)] for l in beats if str(l) in self.classes.keys()]
+        labls = [self.classes[str(l)] for l in beats if str(l) in self.classes.keys()]
+        rhytms = [self.classes[str(l)] for l in beats if str(l) in self.classes.keys()]
         labls.extend(rhytms)
         return labls
             

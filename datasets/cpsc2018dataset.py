@@ -64,8 +64,8 @@ class CPSC2018Dataset(Dataset):
         row=self.index[self.index.index==idx]
         #print(row)
         beats = [row.First_label.values[0], row.Second_label.values[0], row.Third_label.values[0]]
-        labls = [self.morphological_classes[str(int(l))] for l in beats if not np.isnan(l) and str(int(l)) in self.classes.keys()]
-        rhytms = [self.rhythmic_classes[str(int(l))] for l in beats if not np.isnan(l) and str(int(l)) in self.classes.keys()]
+        labls = [self.classes[str(int(l))] for l in beats if not np.isnan(l) and str(int(l)) in self.classes.keys()]
+        rhytms = [self.classes[str(int(l))] for l in beats if not np.isnan(l) and str(int(l)) in self.classes.keys()]
         labls.extend(rhytms)
         return labls
 
