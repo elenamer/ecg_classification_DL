@@ -99,7 +99,7 @@ class CPSC2018Dataset(Dataset):
         print(temp_labels.loc[:,"labels_mlb"].values.shape)
 
         data = data[(temp_labels.labels_mlb.apply(lambda x:sum(x)) > 0 ).values]
-        labels = np.array(temp_labels.loc[(temp_labels.labels_mlb.apply(lambda x:sum(x)) > 0 ).values,"rhythms_mlb"].values.tolist())
+        labels = np.array(temp_labels.loc[(temp_labels.labels_mlb.apply(lambda x:sum(x)) > 0 ).values,"labels_mlb"].values.tolist())
 
         train, test= next(itertools.islice(self.k_fold.split(data,labels), split, None))
         X_test, y_test = data[test], labels[test]
