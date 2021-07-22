@@ -63,5 +63,5 @@ class SlidingWindow(Transform):
             # just crop/pad if needed
             # convert to numpy array
 
-        new_data, new_labels = super(SlidingWindow, self).process(new_data, new_labels)
+        new_data, new_labels, t = super(SlidingWindow, self).process(new_data, new_labels)
         return new_data, new_labels, idmap

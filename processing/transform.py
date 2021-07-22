@@ -28,7 +28,7 @@ class Transform():
             return new_data
         new_labels = np.array(labels)
         print(new_labels.shape)
-        return new_data, new_labels
+        return new_data, new_labels, self.idmap
 
 
     # def call(input signals/patient ids):

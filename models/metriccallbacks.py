@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 from sklearn.metrics import f1_score, roc_auc_score
-from time import time
+import time
 
 ### Defining the Callback Metrics
 class MetricCallback(tf.keras.callbacks.Callback):
