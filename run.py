@@ -36,10 +36,10 @@ for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), 
         exp3.run()
         exp3.evaluate()
 
-        exp4 = Experiment(CPSC2018Dataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
-                                                                                        # do they depend on dataset? on model?
-        exp4.run()
-        exp4.evaluate()
+        # exp4 = Experiment(CPSC2018Dataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
+        #                                                                                 # do they depend on dataset? on model?
+        # exp4.run()
+        # exp4.evaluate()
 
     else:
         exp3 = Experiment(CPSC2018Dataset, Transform, 60, model, task, 'inter', 100) # learning parameters not passed for now?
@@ -47,15 +47,15 @@ for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), 
         exp3.run()
         exp3.evaluate()
 
-        exp4 = Experiment(CPSC2018Dataset, SlidingWindow, sec, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
-                                                                                        # do they depend on dataset? on model?
-        exp4.run()
-        exp4.evaluate()      
+        # exp4 = Experiment(CPSC2018Dataset, SlidingWindow, sec, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
+        #                                                                                 # do they depend on dataset? on model?
+        # exp4.run()
+        # exp4.evaluate()      
 
-        exp4 = Experiment(CPSC2018Dataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
-                                                                                        # do they depend on dataset? on model?
-        exp4.run()
-        exp4.evaluate()
+        # exp4 = Experiment(CPSC2018Dataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
+        #                                                                                 # do they depend on dataset? on model?
+        # exp4.run()
+        # exp4.evaluate()
 
     for task in ["rhythm", "form"]:      
 
@@ -71,10 +71,10 @@ for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), 
             exp3.run()
             exp3.evaluate()
 
-            exp4 = Experiment(PTBXLDataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
-                                                                                            # do they depend on dataset? on model?
-            exp4.run()
-            exp4.evaluate()
+            # exp4 = Experiment(PTBXLDataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
+            #                                                                                 # do they depend on dataset? on model?
+            # exp4.run()
+            # exp4.evaluate()
             
             exp3 = Experiment(Arr10000Dataset, Transform, sec, model, task, 'inter', 100) # learning parameters not passed for now?
                                                                                             # do they depend on dataset? on model?
@@ -86,10 +86,10 @@ for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), 
             exp3.run()
             exp3.evaluate()
 
-            exp4 = Experiment(Arr10000Dataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
-                                                                                            # do they depend on dataset? on model?
-            exp4.run()
-            exp4.evaluate()
+            # exp4 = Experiment(Arr10000Dataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
+            #                                                                                 # do they depend on dataset? on model?
+            # exp4.run()
+            # exp4.evaluate()
         else:
 
             exp3 = Experiment(PTBXLDataset, Transform, 10, model, task, 'inter', 100) # learning parameters not passed for now?
@@ -97,20 +97,20 @@ for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), 
             exp3.run()
             exp3.evaluate()
 
-            exp4 = Experiment(PTBXLDataset, SlidingWindow, sec, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
-                                                                                            # do they depend on dataset? on model?
-            exp4.run()
-            exp4.evaluate()
+            # exp4 = Experiment(PTBXLDataset, SlidingWindow, sec, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
+            #                                                                                 # do they depend on dataset? on model?
+            # exp4.run()
+            # exp4.evaluate()
             
             exp3 = Experiment(Arr10000Dataset, Transform, 10, model, task, 'inter', 100) # learning parameters not passed for now?
                                                                                             # do they depend on dataset? on model?
             exp3.run()
             exp3.evaluate()
 
-            exp4 = Experiment(Arr10000Dataset, SlidingWindow, sec, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
-                                                                                            # do they depend on dataset? on model?
-            exp4.run()
-            exp4.evaluate()
+            # exp4 = Experiment(Arr10000Dataset, SlidingWindow, sec, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
+            #                                                                                 # do they depend on dataset? on model?
+            # exp4.run()
+            # exp4.evaluate()
 
 
 
@@ -122,10 +122,10 @@ for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), 
         exp3.run()
         exp3.evaluate()
 
-        exp4 = Experiment(CPSC2018Dataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
-                                                                                        # do they depend on dataset? on model?
-        exp4.run()
-        exp4.evaluate()
+        # exp4 = Experiment(CPSC2018Dataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
+        #                                                                                 # do they depend on dataset? on model?
+        # exp4.run()
+        # exp4.evaluate()
 
     else:
         exp3 = Experiment(CPSC2018Dataset, Transform, 60, model, task, 'inter', 100) # learning parameters not passed for now?
@@ -133,15 +133,15 @@ for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), 
         exp3.run()
         exp3.evaluate()
 
-        exp4 = Experiment(CPSC2018Dataset, SlidingWindow, sec, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
-                                                                                        # do they depend on dataset? on model?
-        exp4.run()
-        exp4.evaluate()      
+        # exp4 = Experiment(CPSC2018Dataset, SlidingWindow, sec, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
+        #                                                                                 # do they depend on dataset? on model?
+        # exp4.run()
+        # exp4.evaluate()      
 
-        exp4 = Experiment(CPSC2018Dataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
-                                                                                        # do they depend on dataset? on model?
-        exp4.run()
-        exp4.evaluate()      
+        # exp4 = Experiment(CPSC2018Dataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
+        #                                                                                 # do they depend on dataset? on model?
+        # exp4.run()
+        # exp4.evaluate()      
 
     if sec > 10: 
 
@@ -155,10 +155,10 @@ for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), 
         exp3.run()
         exp3.evaluate()
 
-        exp4 = Experiment(PTBXLDataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
-                                                                                        # do they depend on dataset? on model?
-        exp4.run()
-        exp4.evaluate()
+        # exp4 = Experiment(PTBXLDataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
+        #                                                                                 # do they depend on dataset? on model?
+        # exp4.run()
+        # exp4.evaluate()
         
         exp3 = Experiment(Arr10000Dataset, Transform, sec, model, task, 'inter', 100) # learning parameters not passed for now?
                                                                                         # do they depend on dataset? on model?
@@ -170,10 +170,10 @@ for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), 
         exp3.run()
         exp3.evaluate()
 
-        exp4 = Experiment(Arr10000Dataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
-                                                                                        # do they depend on dataset? on model?
-        exp4.run()
-        exp4.evaluate()
+        # exp4 = Experiment(Arr10000Dataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
+        #                                                                                 # do they depend on dataset? on model?
+        # exp4.run()
+        # exp4.evaluate()
     else:
 
         exp3 = Experiment(PTBXLDataset, Transform, 10, model, task, 'inter', 100) # learning parameters not passed for now?
@@ -181,20 +181,20 @@ for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), 
         exp3.run()
         exp3.evaluate()
 
-        exp4 = Experiment(PTBXLDataset, SlidingWindow, sec, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
-                                                                                        # do they depend on dataset? on model?
-        exp4.run()
-        exp4.evaluate()
+        # exp4 = Experiment(PTBXLDataset, SlidingWindow, sec, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
+        #                                                                                 # do they depend on dataset? on model?
+        # exp4.run()
+        # exp4.evaluate()
         
         exp3 = Experiment(Arr10000Dataset, Transform, 10, model, task, 'inter', 100) # learning parameters not passed for now?
                                                                                         # do they depend on dataset? on model?
         exp3.run()
         exp3.evaluate()
 
-        exp4 = Experiment(Arr10000Dataset, SlidingWindow, sec, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
-                                                                                        # do they depend on dataset? on model?
-        exp4.run()
-        exp4.evaluate()
+        # exp4 = Experiment(Arr10000Dataset, SlidingWindow, sec, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
+        #                                                                                 # do they depend on dataset? on model?
+        # exp4.run()
+        # exp4.evaluate()
          
     if sec > 10:    
         exp3 = Experiment(CincChallenge2017Dataset, Transform, sec, model, task, 'inter', 100) # learning parameters not passed for now?
@@ -202,20 +202,20 @@ for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), 
         exp3.run()
         exp3.evaluate()
 
-        exp4 = Experiment(CincChallenge2017Dataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
-                                                                                        # do they depend on dataset? on model?
-        exp4.run()
-        exp4.evaluate()
+        # exp4 = Experiment(CincChallenge2017Dataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
+        #                                                                                 # do they depend on dataset? on model?
+        # exp4.run()
+        # exp4.evaluate()
     else:
         exp3 = Experiment(CincChallenge2017Dataset, Transform, 30, model, task, 'inter', 100) # learning parameters not passed for now?
                                                                                         # do they depend on dataset? on model?
         exp3.run()
         exp3.evaluate()
 
-        exp4 = Experiment(CincChallenge2017Dataset, SlidingWindow, sec, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
-                                                                                        # do they depend on dataset? on model?
-        exp4.run()
-        exp4.evaluate()
+        # exp4 = Experiment(CincChallenge2017Dataset, SlidingWindow, sec, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
+        #                                                                                 # do they depend on dataset? on model?
+        # exp4.run()
+        # exp4.evaluate()
 
 
 for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), (WaveletModel, 10) ]:
@@ -226,10 +226,10 @@ for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), 
         exp3.run()
         exp3.evaluate()
 
-        exp4 = Experiment(CPSC2018Dataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
-                                                                                        # do they depend on dataset? on model?
-        exp4.run()
-        exp4.evaluate()
+        # exp4 = Experiment(CPSC2018Dataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
+        #                                                                                 # do they depend on dataset? on model?
+        # exp4.run()
+        # exp4.evaluate()
 
     else:
         exp3 = Experiment(CPSC2018Dataset, Transform, 60, model, task, 'inter', 100) # learning parameters not passed for now?
@@ -237,15 +237,15 @@ for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), 
         exp3.run()
         exp3.evaluate()
 
-        exp4 = Experiment(CPSC2018Dataset, SlidingWindow, sec, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
-                                                                                        # do they depend on dataset? on model?
-        exp4.run()
-        exp4.evaluate()      
+        # exp4 = Experiment(CPSC2018Dataset, SlidingWindow, sec, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
+        #                                                                                 # do they depend on dataset? on model?
+        # exp4.run()
+        # exp4.evaluate()      
 
-        exp4 = Experiment(CPSC2018Dataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
-                                                                                        # do they depend on dataset? on model?
-        exp4.run()
-        exp4.evaluate()      
+        # exp4 = Experiment(CPSC2018Dataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
+        #                                                                                 # do they depend on dataset? on model?
+        # exp4.run()
+        # exp4.evaluate()      
 
     if sec > 10: 
 
@@ -259,10 +259,10 @@ for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), 
         exp3.run()
         exp3.evaluate()
 
-        exp4 = Experiment(PTBXLDataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
-                                                                                        # do they depend on dataset? on model?
-        exp4.run()
-        exp4.evaluate()
+        # exp4 = Experiment(PTBXLDataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
+        #                                                                                 # do they depend on dataset? on model?
+        # exp4.run()
+        # exp4.evaluate()
         
         exp3 = Experiment(Arr10000Dataset, Transform, sec, model, task, 'inter', 100) # learning parameters not passed for now?
                                                                                         # do they depend on dataset? on model?
@@ -274,10 +274,10 @@ for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), 
         exp3.run()
         exp3.evaluate()
 
-        exp4 = Experiment(Arr10000Dataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
-                                                                                        # do they depend on dataset? on model?
-        exp4.run()
-        exp4.evaluate()
+        # exp4 = Experiment(Arr10000Dataset, SlidingWindow, 2.5, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
+        #                                                                                 # do they depend on dataset? on model?
+        # exp4.run()
+        # exp4.evaluate()
     else:
 
         exp3 = Experiment(PTBXLDataset, Transform, 10, model, task, 'inter', 100) # learning parameters not passed for now?
@@ -285,17 +285,17 @@ for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), 
         exp3.run()
         exp3.evaluate()
 
-        exp4 = Experiment(PTBXLDataset, SlidingWindow, sec, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
-                                                                                        # do they depend on dataset? on model?
-        exp4.run()
-        exp4.evaluate()
+        # exp4 = Experiment(PTBXLDataset, SlidingWindow, sec, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
+        #                                                                                 # do they depend on dataset? on model?
+        # exp4.run()
+        # exp4.evaluate()
         
         exp3 = Experiment(Arr10000Dataset, Transform, 10, model, task, 'inter', 100) # learning parameters not passed for now?
                                                                                         # do they depend on dataset? on model?
         exp3.run()
         exp3.evaluate()
 
-        exp4 = Experiment(Arr10000Dataset, SlidingWindow, sec, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
-                                                                                        # do they depend on dataset? on model?
-        exp4.run()
-        exp4.evaluate()
+        # exp4 = Experiment(Arr10000Dataset, SlidingWindow, sec, model, task, 'inter', 100, aggregate=True) # learning parameters not passed for now?
+        #                                                                                 # do they depend on dataset? on model?
+        # exp4.run()
+        # exp4.evaluate()
