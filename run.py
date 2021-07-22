@@ -30,7 +30,7 @@ from evaluation.experiment import Experiment
 
 for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), (WaveletModel, 10) ]:
     task="form"
-    if sec > 30:
+    if sec >= 30:
         exp3 = Experiment(CPSC2018Dataset, Transform, sec, model, task, 'inter', 100) # learning parameters not passed for now?
                                                                                         # do they depend on dataset? on model?
         exp3.run()
@@ -59,7 +59,7 @@ for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), 
 
     for task in ["rhythm", "form"]:      
 
-        if sec > 10: 
+        if sec >= 10: 
 
             exp3 = Experiment(PTBXLDataset, Transform, 10, model, task, 'inter', 100) # learning parameters not passed for now?
                                                                                             # do they depend on dataset? on model?
@@ -116,7 +116,7 @@ for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), 
 
 for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), (WaveletModel, 10) ]:
     task = 'cinc2017'  
-    if sec > 30:
+    if sec >= 30:
         exp3 = Experiment(CPSC2018Dataset, Transform, sec, model, task, 'inter', 100) # learning parameters not passed for now?
                                                                                         # do they depend on dataset? on model?
         exp3.run()
@@ -143,7 +143,7 @@ for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), 
         # exp4.run()
         # exp4.evaluate()      
 
-    if sec > 10: 
+    if sec >= 10: 
 
         exp3 = Experiment(PTBXLDataset, Transform, 10, model, task, 'inter', 100) # learning parameters not passed for now?
                                                                                         # do they depend on dataset? on model?
@@ -196,7 +196,7 @@ for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), 
         # exp4.run()
         # exp4.evaluate()
          
-    if sec > 10:    
+    if sec >= 10:    
         exp3 = Experiment(CincChallenge2017Dataset, Transform, sec, model, task, 'inter', 100) # learning parameters not passed for now?
                                                                                         # do they depend on dataset? on model?
         exp3.run()
@@ -220,7 +220,7 @@ for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), 
 
 for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), (WaveletModel, 10) ]:
     task='cpsc2018'
-    if sec > 30:
+    if sec >= 30:
         exp3 = Experiment(CPSC2018Dataset, Transform, sec, model, task, 'inter', 100) # learning parameters not passed for now?
                                                                                         # do they depend on dataset? on model?
         exp3.run()
@@ -247,7 +247,7 @@ for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), 
         # exp4.run()
         # exp4.evaluate()      
 
-    if sec > 10: 
+    if sec >= 10: 
 
         exp3 = Experiment(PTBXLDataset, Transform, 10, model, task, 'inter', 100) # learning parameters not passed for now?
                                                                                         # do they depend on dataset? on model?
