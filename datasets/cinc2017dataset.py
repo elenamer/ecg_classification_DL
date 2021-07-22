@@ -33,6 +33,10 @@ class CincChallenge2017Dataset(Dataset):
         print(self.patientids)
 
         self.encoded_labels = self.encode_labels()
+        self.max_size=22000 # FOr now
+        # Load PTB-XL data
+        self.data = [self.get_signal(self.path+os.sep+'training2017',id) for id in self.index.index[:self.max_size]]
+        
         #patientids = [os.path.split(id)[-1] for id in patientids]		
 
     def get_recordids(self):
@@ -93,12 +97,9 @@ class CincChallenge2017Dataset(Dataset):
             
 
     def get_crossval_splits(self, split=9):
-        max_size=2200 # FOr now
-        # Load PTB-XL data
-        data = [self.get_signal(self.path+os.sep+'training2017',id) for id in self.index.index[:max_size]]
-        
-        temp_labels = self.encoded_labels.iloc[:max_size,:]
-        data=np.array(data, dtype=object)
+
+        temp_labels = self.encoded_labels.iloc[:self.max_size,:]
+        data=np.array(self.data, dtype=object)
         print("before")
         # Preprocess label data
 

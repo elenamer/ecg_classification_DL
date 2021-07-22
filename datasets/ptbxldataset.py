@@ -68,9 +68,9 @@ class PTBXLDataset(Dataset):
         self.index = self.get_index()
 
         self.encoded_labels = self.encode_labels()
-        max_size=2200 # FOr now
+        self.maxsize=2200 # FOr now
         # Load PTB-XL data
-        self.data = [self.get_signal(self.path,id) for id in self.index.filename_lr[:max_size]]
+        self.data = [self.get_signal(self.path,id) for id in self.index.filename_lr[:self.maxsize]]
         #self.classes_dict = initial_classes_dict[classes]
         #print(self.patientids)
             #patientids = [os.path.split(id)[-1] for id in patientids]		
@@ -232,7 +232,7 @@ class PTBXLDataset(Dataset):
 
     def get_crossval_splits(self, split=9):
 
-        max_size=2200 # FOr now
+        max_size=self.maxsize # FOr now
         data=np.array(self.data, dtype=object)
         temp_labels = self.encoded_labels.iloc[:max_size,:]
         print(temp_labels.shape)

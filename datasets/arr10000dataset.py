@@ -58,6 +58,9 @@ class Arr10000Dataset(Dataset):
         self.freq = 500
 
         self.encoded_labels = self.encode_labels()
+        
+        self.max_size = 22000
+        self.data = [self.get_signal(self.path+os.sep+"ECGData",id+".csv") for id in self.index.index[:self.max_size]]
 
 
         #self.num_channels = n_channels
@@ -132,12 +135,10 @@ class Arr10000Dataset(Dataset):
 
 
     def get_crossval_splits(self, split=9):
-        max_size=2200 # FOr now
         # Load PTB-XL data
-        data = [self.get_signal(self.path+os.sep+"ECGData",id+".csv") for id in self.index.index[:max_size]]
         
-        data=np.array(data, dtype=object)
-        temp_labels = self.encoded_labels.iloc[:max_size,:]
+        data=np.array(self.data, dtype=object)
+        temp_labels = self.encoded_labels.iloc[:self.max_size,:]
         
         print("before")
         # Preprocess label data
