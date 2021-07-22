@@ -9,6 +9,9 @@ import tensorflow as tf
 import numpy as np
 import sklearn
 import wandb
+import seaborn as sns 
+import matplotlib.pyplot as plt
+import pandas as pd
 
 def evaluate_metrics(confusion_matrix):
     # https://stackoverflow.com/questions/31324218/scikit-learn-how-to-obtain-true-positive-true-negative-false-positive-and-fal
@@ -58,7 +61,7 @@ class Experiment():
             self.is_dnn=False
         self.task = task
 
-        self.classes = self.dataset.classes
+        self.classes = self.dataset.class_names
         self.eval = evaluation_strategy
 
         self.path = "experiments"+os.sep+self.dataset.name+os.sep+self.transform.name+str(self.input_size)+os.sep+model_name+os.sep+self.task  
@@ -73,7 +76,7 @@ class Experiment():
 
         ## Here choose between evaluation paradigms according to self.eval
         # For now have only one which is obtained with dat.get_crossval_split()
-
+        distrs_splits = []
         for n in range(self.dataset.k_fold.get_n_splits()):
             # (look at ptbxl code, basically go through all models for a specific dataset)
             os.makedirs(self.path+os.sep+str(n)+os.sep+"models", exist_ok=True)
@@ -82,7 +85,7 @@ class Experiment():
             wandb.run.save()
             if self.is_dnn:
                 tf.keras.backend.clear_session()
-                self.classifier = Classifier(self.model(), self.input_size, len(self.classes), self.transform, path=self.path+os.sep+str(n), learning_rate=0.0001, epochs = self.epochs) ## lr for good cpsc run is ~0.0001 - 0.001
+                self.classifier = Classifier(self.model(), self.input_size, len(self.classes), path=self.path+os.sep+str(n), learning_rate=0.0001, epochs = self.epochs) ## lr for good cpsc run is ~0.0001 - 0.001
                 self.classifier.add_compile()
                 self.classifier.summary()
             else:
@@ -131,8 +134,33 @@ class Experiment():
             if self.save:
                 os.makedirs(self.path+os.sep+str(n)+os.sep+"model", exist_ok=True)
                 self.classifier.save(self.path+os.sep+str(n)+os.sep+"model")
-
             run.finish()
+            distrs_splits.append(np.sum(Y_test, axis=0))
+        
+        # SMALL_SIZE = 8
+        # MEDIUM_SIZE = 10
+        # BIGGER_SIZE = 14
+
+        # plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
+        # plt.rc('axes', titlesize=BIGGER_SIZE)     # fontsize of the axes title
+        # plt.rc('axes', labelsize=BIGGER_SIZE)    # fontsize of the x and y labels
+        # plt.rc('xtick', labelsize=BIGGER_SIZE)    # fontsize of the tick labels
+        # plt.rc('ytick', labelsize=BIGGER_SIZE)    # fontsize of the tick labels
+        # #plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
+        # #plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+
+        # fig = plt.figure(figsize=(17,8))
+        # axes = fig.add_subplot(1,1,1)
+        # df = pd.DataFrame(distrs_splits)
+        # df = df.astype(int)
+        # eps = 10e-1
+        
+        # sns.heatmap(df+eps, annot=df.values, fmt="d")
+        # labels = axes.get_yticklabels()
+        # axes.set_yticklabels(labels, rotation=0) 
+        # fig.tight_layout()
+        # fig.savefig(self.path+os.sep+self.task+'-labels-heatmap.png', dpi=400)
+
 
     def evaluate(self):
 
@@ -149,7 +177,7 @@ class Experiment():
         f1_val_scores = []
         all_epoch_times = []
 
-        for n in range(self.dataset.k_fold.get_n_splits()):
+        for n in range(2):
 
             y_train = np.load(self.path+os.sep+str(n)+os.sep+'Y_train.npy', allow_pickle=True)
             y_val = np.load(self.path+os.sep+str(n)+os.sep+'Y_val.npy', allow_pickle=True)
