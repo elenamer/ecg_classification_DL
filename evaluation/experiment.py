@@ -135,7 +135,7 @@ class Experiment():
                 os.makedirs(self.path+os.sep+str(n)+os.sep+"model", exist_ok=True)
                 self.classifier.save(self.path+os.sep+str(n)+os.sep+"model")
             run.finish()
-            distrs_splits.append(np.sum(Y_test, axis=0))
+        #     distrs_splits.append(np.sum(Y_test, axis=0))
         
         # SMALL_SIZE = 8
         # MEDIUM_SIZE = 10
@@ -190,7 +190,7 @@ class Experiment():
 
             epoch_times = np.load(self.path+os.sep+str(n)+os.sep+'epoch_times.npy', allow_pickle=True)
 
-            labels = np.argwhere(y_train.sum(axis=0) > 0 )
+            labels = np.argwhere(y_train.sum(axis=0) > 30 )
       
             print(labels)
             print(np.sum(y_test_pred, axis=0))
