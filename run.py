@@ -32,7 +32,7 @@ combinations_dict = {
     "form" : [(CPSC2018Dataset, 30, 60), (PTBXLDataset, 10, 10), (Arr10000Dataset, 10, 10)],
     "rhythm" : [ (PTBXLDataset, 10, 10), (Arr10000Dataset, 10, 10)],
     'cinc2017' : [(CPSC2018Dataset, 30, 60), (CincChallenge2017Dataset, 10, 30), (PTBXLDataset, 10, 10), (Arr10000Dataset, 10, 10)],
-    "cpsc2018" : [(CPSC2018Dataset, 30, 60), (PTBXLDataset, 10, 10), (Arr10000Dataset, 10, 10)]   
+    "cpsc2018" : [(CPSC2018Dataset, 30, 60), (PTBXLDataset, 10, 10)]   
 }
 
 for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), (WaveletModel, 10) ]:
