@@ -29,17 +29,17 @@ from evaluation.experiment import Experiment
 # exp2.evaluate()
 
 combinations_dict = {
-    "form" : [(CPSC2018Dataset, 30, 60), (PTBXLDataset, 10, 10), (Arr10000Dataset, 10, 10)],
-    "rhythm" : [ (PTBXLDataset, 10, 10), (Arr10000Dataset, 10, 10)],
-    'cinc2017' : [(CPSC2018Dataset, 30, 60), (CincChallenge2017Dataset, 10, 30), (PTBXLDataset, 10, 10), (Arr10000Dataset, 10, 10)],
-    "cpsc2018" : [(CPSC2018Dataset, 30, 60), (PTBXLDataset, 10, 10)]   
+    #"form" : [(CPSC2018Dataset, 30, 60), (PTBXLDataset, 10, 10), (Arr10000Dataset, 10, 10)],
+    "rhythm" : [(PTBXLDataset, 10, 10)]#, (Arr10000Dataset, 10, 10)],
+    #'cinc2017' : [(CPSC2018Dataset, 30, 60), (CincChallenge2017Dataset, 10, 30), (PTBXLDataset, 10, 10), (Arr10000Dataset, 10, 10)],
+    #"cpsc2018" : [(CPSC2018Dataset, 30, 60), (PTBXLDataset, 10, 10)]   
 }
 
-for model, sec in [(CNN, 10), (RTACNN,30), (CPSCWinnerNet, 144), (ResNet, 2.5), (WaveletModel, 10) ]:
+for model, sec, freq in [(CPSCWinnerNet, 144, 500)]: #(CNN, 10, 360), (RTACNN, 30, 300), (CPSCWinnerNet, 144, 500), (ResNet, 2.5, 250), (WaveletModel, 10, 100) ]:
     for task in combinations_dict.keys():
         for dat, threshold, alternative_sec in combinations_dict[task]:
             if sec >= threshold:
-                exp3 = Experiment(dat, Transform, threshold, model, task, 'inter', 100)
+                exp3 = Experiment(dat, Transform, freq, threshold, model, task, 'inter', 100)
                 exp3.run()
                 exp3.evaluate()
 

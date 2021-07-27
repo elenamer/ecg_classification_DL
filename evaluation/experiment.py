@@ -49,9 +49,9 @@ def evaluate_metrics(confusion_matrix):
 
 
 class Experiment():
-    def __init__(self, dataset, transform, input_seconds, model, task, evaluation_strategy, epochs, aggregate = False, save_model = False):
-        self.dataset = dataset(task)
-        self.fs = self.dataset.freq
+    def __init__(self, dataset, transform, freq, input_seconds, model, task, evaluation_strategy, epochs, aggregate = False, save_model = False):
+        self.dataset = dataset(task, self.fs)
+        self.fs = freq
         self.input_size = int(input_seconds*self.fs)
         self.transform = transform(self.input_size) # connected with input_size
         self.is_dnn = True

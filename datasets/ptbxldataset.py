@@ -11,6 +11,7 @@ from collections import Counter
 import subprocess
 import wfdb
 from .utils import *
+from scipy.signal import resample
 
 choices = ['_train','_test']
 choice = ''
@@ -52,9 +53,12 @@ initial_classes_dict = {
 
 }
 
+leads = [ 'I','II', 'III', 'aVL','aVF', 'V1','V2','V3','V4','V5','V6']
+
+
 class PTBXLDataset(Dataset):
 
-    def __init__(self, task): ## classes, segmentation, selected channel
+    def __init__(self, task, fs = None, lead= 'II'): ## classes, segmentation, selected channel
         self.name = 'ptb-xl'
         super(PTBXLDataset, self).__init__(task)
         self.path = "./data/"+self.name+"/"
@@ -62,8 +66,11 @@ class PTBXLDataset(Dataset):
         self.patientids = self.get_patientids()
 
         self.freq = 100
-        self.lead = "II"
-        self.lead_id = 1 # temp, this is actually determined in extract_metadata
+        if fs is not None:
+            self.new_freq = fs
+        else:
+            self.new_freq = self.freq
+        self.lead = lead
 
         self.index = self.get_index()
 
@@ -108,7 +115,13 @@ class PTBXLDataset(Dataset):
 
     def get_signal(self, path, idx):
         data, metadata = wfdb.rdsamp(path+idx)
-        return data[:,self.lead_id]
+        lead_names = self.lead.split("-")
+        if len(lead_names) == 1:
+            sig = data.T[:,leads.index(lead_names[0])]
+        else:
+            sig = data.T[:,leads.index(lead_names[0])] - data.T[:,leads.index(lead_names[1])]
+        sig = resample(sig, int(sig.shape[0] / self.freq) * self.new_freq)        
+        return sig
 
     def get_annotation(self, path, idx):
         row = self.index[self.index.filename_lr == idx]
