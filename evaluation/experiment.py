@@ -50,8 +50,8 @@ def evaluate_metrics(confusion_matrix):
 
 class Experiment():
     def __init__(self, dataset, transform, freq, input_seconds, model, task, evaluation_strategy, epochs, aggregate = False, save_model = False):
-        self.dataset = dataset(task, self.fs)
         self.fs = freq
+        self.dataset = dataset(task, self.fs)
         self.input_size = int(input_seconds*self.fs)
         self.transform = transform(self.input_size) # connected with input_size
         self.is_dnn = True
@@ -67,7 +67,7 @@ class Experiment():
         self.path = "experiments"+os.sep+self.dataset.name+os.sep+self.transform.name+str(self.input_size)+os.sep+model_name+os.sep+self.task  
         os.makedirs(self.path, exist_ok=True)
         self.save = save_model
-        self.name = self.dataset.name+"_"+self.transform.name+str(self.input_size)+"_"+model_name+"_"+self.task  
+        self.name = self.dataset.name+"_"+self.transform.name+str(self.input_size)+"_"+model_name+"_"+self.task+"_"+str(self.fs)
 
         self.epochs = epochs
         self.aggregate = aggregate
