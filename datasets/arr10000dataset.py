@@ -9,6 +9,7 @@ from collections import Counter
 import matplotlib.pyplot as plt
 from skmultilearn.model_selection import iterative_train_test_split
 import itertools
+from scipy import signal 
 
 results_path = "./data_overviews"
 
@@ -44,7 +45,7 @@ initial_classes_dict = {
 
 class Arr10000Dataset(Dataset):
 
-    def __init__(self, task, lead = 'II'): ## classes, segmentation, selected channel
+    def __init__(self, task, fs=None, lead = 'II'): ## classes, segmentation, selected channel
         self.name = 'arr10000'
         super(Arr10000Dataset,self).__init__(task)
         
@@ -56,6 +57,10 @@ class Arr10000Dataset(Dataset):
 
         self.lead = lead # options: e.g. 'II' or 'V1-V2'
         self.freq = 500
+        if fs is not None:
+            self.new_freq = fs
+        else:
+            self.new_freq = self.freq
 
         self.encoded_labels = self.encode_labels()
         
@@ -89,6 +94,7 @@ class Arr10000Dataset(Dataset):
         # plt.show()
         # plt.plot(X[['II']].values)
         # plt.show()
+        sig = signal.resample(sig, int(sig.shape[0] / self.freq) * self.new_freq)
         return sig
 
 

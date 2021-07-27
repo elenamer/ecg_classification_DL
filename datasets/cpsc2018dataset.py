@@ -11,6 +11,7 @@ from scipy.io import loadmat
 import matplotlib.pyplot as plt
 from skmultilearn.model_selection import iterative_train_test_split
 import itertools
+from scipy.signal import resample
 
 
 choices = ['_train','_test']
@@ -22,7 +23,7 @@ leads = [ 'I','II', 'III', 'aVL','aVF', 'V1','V2','V3','V4','V5','V6']
 
 class CPSC2018Dataset(Dataset):
 
-    def __init__(self, task, lead='II'): ## classes, segmentation, selected channel
+    def __init__(self, task, fs=None, lead='II'): ## classes, segmentation, selected channel
         self.name = 'cpsc2018'#name
         super(CPSC2018Dataset, self).__init__(task)
         self.path = "./data/"+self.name
@@ -31,6 +32,10 @@ class CPSC2018Dataset(Dataset):
 
         self.lead = lead
         self.freq = 500
+        if fs is not None:
+            self.new_freq = fs
+        else:
+            self.new_freq = self.freq
         self.index = []
 
         self.patientids = self.get_recordids()
@@ -58,6 +63,7 @@ class CPSC2018Dataset(Dataset):
         # plt.show()
         # plt.plot(sig.T[:,leads.index('II')])
         # plt.show()
+        signal = resample(signal, int(signal.shape[0] / self.freq) * self.new_freq)
         return signal
 
     def get_annotation(self, path, idx):

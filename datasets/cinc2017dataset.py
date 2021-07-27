@@ -11,6 +11,7 @@ import ast
 import matplotlib.pyplot as plt
 from skmultilearn.model_selection import iterative_train_test_split
 import itertools
+from scipy import signal 
 
 
 choices = ['_train','_test']
@@ -23,13 +24,17 @@ WFDB = "/usr/local/bin"#/home/elena/wfdb/bin"
 
 class CincChallenge2017Dataset(Dataset):
 
-    def __init__(self, task): ## classes, segmentation, selected channel
+    def __init__(self, task, fs=None): ## classes, segmentation, selected channel
         self.name = 'cinc2017'#name
         super(CincChallenge2017Dataset, self).__init__(task)
         self.path = "./data/"+self.name
         self.patientids = self.get_recordids()
         self.index = self.get_index()
         self.freq = 300
+        if fs is not None:
+            self.new_freq = fs
+        else:
+            self.new_freq = self.freq
         print(self.patientids)
 
         self.encoded_labels = self.encode_labels()
@@ -84,7 +89,9 @@ class CincChallenge2017Dataset(Dataset):
 
     def get_signal(self, path, idx):
         data, metadata = wfdb.rdsamp(path+os.sep+idx)
-        return data[:,0]
+        sig = data[:,0]
+        sig = signal.resample(sig, int(sig.shape[0] / self.freq) * self.new_freq)
+        return sig
 
 
     def get_annotation(self, path, idx):
