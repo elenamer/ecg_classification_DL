@@ -1,42 +1,86 @@
 import os
 import argparse
 import numpy as np
+from numpy.lib import stride_tricks
 import pandas as pd
 import pickle
 
-'''
+tasks = ["form", "rhythm"]
 
-ACC
-PPV - Precision
-TPR - Sen - Recall 
-TNR - Spe
-F1 
+classes = list(range(10))
 
-'''
+metrics = ["AUC","F1"]
+stats = ["mean", "var"]#,"std","min","max"]
+sets = ["test","val"]
 
-parser = argparse.ArgumentParser(description='Choose root path of all result files')
-parser.add_argument('--path', type=str,
-                    help='path to results')
-args = parser.parse_args()
-results_path = args.path
+models=['cpscwinner', 'resnet', 'rtacnn','cnn','wavelet']
+models_and_all = models # just list them
 
-classes = ["N","S","V","F","Q"]
+models_ind = np.repeat(models_and_all, len(metrics)*len(stats) *len(sets))
 
-metrics = ["ACC","TNR", "PPV","TPR","F1","support"]
-experiments = ["specific", "intra","inter"]
-patients = {"specific":[201,203,205,207,208,209,215,220,223,230,200,202,210,212,213,214,219,221,222,228,231,232,233,234],
-"inter": [''],
-"intra": [0,1,2,3,4,5,6,7,8,9]
-}
-segmentations = ["static", "dynamic"]#,"incartdb","svdb","edb"]#,"incartdb","svdb","edb"]#,'birnn'] # "birnn", "deeptransf"
-models = sorted(os.listdir(results_path))
+metrics_ind = np.repeat(metrics, len(stats) * len(sets)) 
+metrics_ind = [str(s) for s in metrics_ind]
+metrics_ind = metrics_ind * len(models_and_all)
 
-models = [
-"test",
-"val"
-]
+stats_ind = np.repeat(stats, len(sets))
+stats_ind = [str(s) for s in stats_ind]
+stats_ind = stats_ind * len(metrics)* len(models_and_all)
 
-print(models)
+sets_ind = sets * len(metrics) * len(models_and_all) * len(stats)
+
+
+datasets_ind = [] 
+segmentations_ind = []
+
+datasets = [d for d in os.listdir("experiments") if os.path.isdir("experiments"+os.sep+d)]
+
+print(datasets)
+
+for dataset in datasets:
+    segmentations = [d for d in os.listdir("experiments"+os.sep+dataset) if os.path.isdir("experiments"+os.sep+dataset+os.sep+d)]
+    for segm in segmentations:
+        datasets_ind.append(dataset)
+        segmentations_ind.append(segm)
+
+results = {}
+print(datasets_ind)
+print(segmentations_ind)
+
+results_df1 = pd.DataFrame(columns = [models_ind, metrics_ind, stats_ind, sets_ind], index=[datasets_ind, segmentations_ind] )
+results_df1 = results_df1.fillna('/')
+print(results_df1)
+
+for task in tasks:
+
+    results_df1 = pd.DataFrame(columns = [models_ind, metrics_ind, stats_ind, sets_ind], index=[datasets_ind, segmentations_ind] )
+    results_df1 = results_df1.fillna('/')
+
+    for dataset in datasets:
+        segmentations = [d for d in os.listdir("experiments"+os.sep+dataset) if os.path.isdir("experiments"+os.sep+dataset+os.sep+d)]
+        for segm in segmentations:
+            models = [d for d in os.listdir("experiments"+os.sep+dataset+os.sep+segm) if os.path.isdir("experiments"+os.sep+dataset+os.sep+segm+os.sep+d)]
+            for model in models:
+                path = "experiments"+os.sep+dataset+os.sep+segm+os.sep+model+os.sep+task
+                print(path)
+                try:      
+                    with open(path+os.sep+'results.txt', 'r') as f:
+                        print(f)
+                        temp = f.read()
+                        dict = eval(temp)
+                        print(dict)
+                except:
+                    continue
+                for metric in metrics:
+                    for stat in stats:
+                        for dset in sets:
+                            print(dict[metric.lower()][dset.lower()])
+                            elem = dict[metric.lower()][dset.lower()][stat.lower()]
+                            results_df1.loc[(dataset, segm),(model, metric, stat, dset)] = elem
+    results[task]= results_df1
+
+for task in tasks:
+    results[task].to_csv(os.path.join('.', "summary_"+task+".csv"))
+
 
 def evaluate_metrics(confusion_matrix):
     # https://stackoverflow.com/questions/31324218/scikit-learn-how-to-obtain-true-positive-true-negative-false-positive-and-fal
@@ -68,128 +112,5 @@ def evaluate_metrics(confusion_matrix):
 
     ACC_macro = np.mean(
         ACC)  # to get a sense of effectiveness of our method on the small classes we computed this average (macro-average)
-    results_dict = {"ACC_macro":ACC_macro, "ACC":ACC, "TPR":TPR, "TNR":TNR, "PPV":PPV }
+    results_dict = {"ACC_macro":ACC_macro, "ACC":ACC, "TPR":TPR, "TNR":TNR, "PPV":PPV}
     return ACC, TPR, TNR, PPV, F1, support
-
-'''
-for root, dirs, files in os.walk(results_path, topdown=False):
-   for name in files:
-       if name.endswith(".csv") and "test" not in name:
-            print(name)
-            try:
-                arr = np.loadtxt(os.path.join(root, name))
-                # if it is only numpy then it hasn't been processed yet
-            except:
-                # if numpy load fails, then it has been processed and do nothing
-                continue
-            print(arr)
-            print(os.path.join(root, name))
-            if "ACC_macro" in name:
-                df = pd.DataFrame(arr, columns=["average"], index=np.arange(1,arr.shape[0]+1))
-            else:
-                df = pd.DataFrame(arr, columns=classes, index=np.arange(1,arr.shape[0]+1))
-            df.loc["mean"]=df.mean()
-            df.loc["std"]=df.std()
-            print(df)
-            df.to_csv(os.path.join(root, name), float_format="%.5f")
-'''
-
-segmentations_ind = segmentations*len(models)
-models_ind = np.repeat(models, len(segmentations))
-stats = ["mean"]#,"std","min","max"]
-
-classes_and_all = ["All"] + classes
-classes_ind = np.repeat(classes_and_all, len(metrics)*len(stats))
-metrics_ind = np.repeat(metrics, len(stats)) 
-metrics_ind = [str(s) for s in metrics_ind]
-metrics_ind = metrics_ind * len(classes_and_all)
-stats_ind = stats * len(metrics) * len(classes_and_all)
-#
-print(len(stats_ind))
-print(len(classes_ind))
-print(len(metrics_ind))
-results_df1 = pd.DataFrame(columns = [classes_ind, metrics_ind, stats_ind], index=[models_ind, segmentations_ind] )
-results_df1 = results_df1.fillna('/')
-results_df2 = pd.DataFrame(columns = [classes_ind, metrics_ind, stats_ind], index=[models_ind, segmentations_ind] )
-results_df2 = results_df2.fillna('/')
-results_df3 = pd.DataFrame(columns = [classes_ind, metrics_ind, stats_ind], index=[models_ind, segmentations_ind] )
-results_df3 = results_df2.fillna('/')
-results = {"intra": results_df1, "inter": results_df2, "specific": results_df3}
-
-print("BREAK")
-for model in models:
-    for segmentation_method in segmentations:
-        for evaluation_method in experiments:
-            skip=False
-            ACC=[]
-            TPR=[]
-            TNR=[]
-            PPV=[]
-            F1=[]
-            support=[]
-            sum_arr = np.zeros((len(classes),len(classes)))
-            for patient in patients[evaluation_method]:
-                patient = str(patient)
-                try:
-                    if patient=='':
-                        cm_path = os.path.join(results_path, segmentation_method, evaluation_method+"patient" , "CM_"+model+".pkl")
-                    else:
-                        cm_path = os.path.join(results_path, segmentation_method, evaluation_method+"patient" , patient, "CM_"+model+".pkl")
-                    print(cm_path)
-                    with open(cm_path, "rb") as f:
-                        #print(os.path.join(results_path, model, "results-"+evaluation_method+"patient"+patient, "CM_"+segmentation_method+".pkl"))
-                        arr = pickle.load(f)
-                        print(arr)
-                        if arr[0] is None:
-                            continue
-                except OSError as e:
-                    skip=True
-                    print(cm_path+" not found")
-                    continue
-
-                sum_arr+=arr    
-            print(sum_arr)               
-            acc, sensitivity, specificity, ppv, f1, sup = evaluate_metrics(sum_arr)
-            # ACC.append(acc)
-            # TPR.append(sensitivity)
-            # TNR.append(specificity)
-            # PPV.append(ppv)
-            # F1.append(f1)
-            # support.append(sup)
-            if skip:
-                continue
-            metric_results = {"ACC":acc, "TPR": sensitivity, "PPV":ppv, "TNR":specificity, "F1":f1, "support":sup}
-            #print(ACC)
-            for metric in metrics:
-            #print(name)
-                #arr=np.array(metric_results[metric])
-                df = pd.DataFrame(arr, columns=classes, index=np.arange(1,arr.shape[0]+1))
-                #df1 = df.copy()
-                df.loc["mean"]=metric_results[metric]#df1.mean()
-                #df.loc["std"]=df1.std()  
-                #df.loc["min"]=df1.min()
-                #df.loc["max"]=df1.max() 
-                #print(df)
-                agg_metric = 0
-                for i,cl in enumerate(classes):   
-                    mean = df.loc['mean',cl]
-                    #std = df.loc['std',cl]
-                    #mmin = df.loc['min',cl]
-                    #mmax = df.loc['max',cl]
-                    #print(mean)
-                    results[evaluation_method].loc[(model, segmentation_method),(cl, metric,"mean")] = mean
-                    agg_metric += mean * metric_results["support"][i] / np.sum(metric_results["support"])
-                    #results[evaluation_method].loc[(model, segmentation_method),(cl, metric,"std")] = std
-                    #results[evaluation_method].loc[(model, segmentation_method),(cl, metric,"min")] = mmin
-                    #results[evaluation_method].loc[(model, segmentation_method),(cl, metric,"max")] = mmax
-                results[evaluation_method].loc[(model, segmentation_method),("All", metric,"mean")] = agg_metric
-                #results[evaluation_method].loc[(model, segmentation_method),("All", metric,"std")] = np.mean(df.loc['std'], axis=0)
-                #results[evaluation_method].loc[(model, segmentation_method),("All", metric,"min")] = np.mean(df.loc['min'], axis=0)
-                #results[evaluation_method].loc[(model, segmentation_method),("All", metric,"max")] = np.mean(df.loc['max'], axis=0)
-for evaluation_method in experiments:
-    print(evaluation_method)
-    results[evaluation_method] = results[evaluation_method].round(4)
-    print(results[evaluation_method])
-    results[evaluation_method].to_csv(os.path.join(results_path, "summary_"+evaluation_method+".csv"))
-# remove macro file
-# add intra- and inter- in folder name
