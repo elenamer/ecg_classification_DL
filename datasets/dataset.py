@@ -15,11 +15,13 @@ results_path = "./data_overviews"
 
 class Dataset():
 
-    def __init__(self, task):
+    def __init__(self, task, eval):
         #super(Dataset, self).__init__()
         self.all_morph_classes = []
         self.all_rhy_classes = []
         self.task = task
+
+        self.eval = eval
 
         self.classes = self.get_classes()
         self.k_fold = IterativeStratification(n_splits=10, order=1) # fixed for now, should be defined by evaluation paradigm in the future

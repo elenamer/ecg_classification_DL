@@ -122,8 +122,8 @@ class SegmentBeats(Transform):
         full_data = []
         full_labels = []
         choice = "static"
-        idmap = []
-        groupmap = []
+        self.idmap = []
+        self.groupmap = []
         for ind, sig in enumerate(X):
             if len(sig) == self.input_size:
                 print("no need, already segmented")
@@ -133,11 +133,11 @@ class SegmentBeats(Transform):
             beats, labls = self.segment_beats(choice, sig, labels[ind], self.input_size, 0, -1)
             full_data.extend(beats)
             full_labels.extend(labls)
-            groupmap.extend([ind]*len(beats))
+            self.groupmap.extend([ind]*len(beats))
             #print(full_labels)
-        full_data, full_labels = super(SegmentBeats, self).process(full_data, full_labels)
-        idmap = np.arange(full_data.shape[0])
+        full_data, full_labels, _ = super(SegmentBeats, self).process(full_data, full_labels)
+        self.idmap = np.arange(full_data.shape[0])
         print("after processing")
         print(full_data.shape)
         print(full_labels.shape)
-        return full_data, full_labels, idmap # or maybe groupmap?
+        return full_data, full_labels, self.idmap # or maybe groupmap?

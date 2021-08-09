@@ -51,7 +51,8 @@ def evaluate_metrics(confusion_matrix):
 class Experiment():
     def __init__(self, dataset, transform, freq, input_seconds, model, task, evaluation_strategy, epochs, aggregate = False, save_model = False):
         self.fs = freq
-        self.dataset = dataset(task, self.fs)
+        self.eval = evaluation_strategy
+        self.dataset = dataset(task = task, fs = self.fs, eval = self.eval)
         self.input_size = int(input_seconds*self.fs)
         self.transform = transform(self.input_size) # connected with input_size
         self.is_dnn = True
@@ -62,7 +63,6 @@ class Experiment():
         self.task = task
 
         self.classes = self.dataset.class_names
-        self.eval = evaluation_strategy
 
         self.path = "experiments"+os.sep+self.dataset.name+os.sep+self.transform.name+str(self.input_size)+os.sep+model_name+os.sep+self.task  
         os.makedirs(self.path, exist_ok=True)
@@ -91,14 +91,25 @@ class Experiment():
             else:
                 self.classifier = self.model(n_classes=len(self.classes), freq=self.fs, outputfolder=self.path+os.sep+str(n))
             print(n)
-            X_train, Y_train, X_val, Y_val, X_test, Y_test = self.dataset.get_crossval_splits(split=n)
-            
 
-            self.transform.reset_idmap()
+            if self.eval == 'inter':
+                X_train, Y_train, X_val, Y_val, X_test, Y_test = self.dataset.get_crossval_splits(split=n)
+                
+                self.transform.reset_idmap()
 
-            X_test, Y_test, idmap_test = self.transform.process(X = X_test, labels = Y_test)
-            X_val, Y_val, idmap_val = self.transform.process(X = X_val, labels = Y_val)
-            X_train, Y_train, idmap_train = self.transform.process(X = X_train, labels = Y_train)
+                X_test, Y_test, idmap_test = self.transform.process(X = X_test, labels = Y_test)
+                X_val, Y_val, idmap_val = self.transform.process(X = X_val, labels = Y_val)
+                X_train, Y_train, idmap_train = self.transform.process(X = X_train, labels = Y_train)
+
+            else:
+                
+                X, Y = self.dataset.get_data()
+                self.transform.reset_idmap()
+
+                X, Y, idmap = self.transform.process(X = X, labels = Y)
+
+                X_train, Y_train, X_val, Y_val, X_test, Y_test = self.dataset.get_crossval_splits_intrapatient(X=X, Y=Y, split=n)
+
 
             print("after processing")
 

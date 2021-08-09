@@ -10,12 +10,16 @@ aami_annots_list=['N','L','R','e','j','S','A','a','J','V','E','F','/','f','Q']
 
 class MITBIHARDataset(PhysionetDataset):
 
-    def __init__(self, task, lead='II'): ## classes, segmentation, selected channel
+    def __init__(self, task, fs=None, eval='inter', lead='II'): ## classes, segmentation, selected channel
         name = 'mitdb'
         self.name = name
-        super(MITBIHARDataset, self).__init__(name, task)
-
+        super(MITBIHARDataset, self).__init__(name, task, eval)
+        
         self.freq = 360
+        if fs is not None:
+            self.new_freq = fs
+        else:
+            self.new_freq = self.freq
 
         # for patient-specific
         self.common_patients = [101,106,108,109,112,114,115,116,118,119,122,124,100,103,105,111,113,117,121,123]

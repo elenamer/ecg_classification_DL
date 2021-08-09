@@ -10,12 +10,18 @@ aami_annots_list=['N','L','R','e','j','S','A','a','J','V','E','F','/','f','Q']
 
 class MITBIHSVDataset(PhysionetDataset):
 
-    def __init__(self, task, lead = 'II' ): ## classes, segmentation, selected channel
+    def __init__(self, task, fs=None, eval='inter', lead = 'II' ): ## classes, segmentation, selected channel
         name = "svdb"
         self.name= name
         super(MITBIHSVDataset, self).__init__(name, task)
 
         #self.classes = ["N", "S", "V", "F", "Q"]
+
+        self.freq = 128
+        if fs is not None:
+            self.new_freq = fs
+        else:
+            self.new_freq = self.freq
 
 
         # for patient-specific

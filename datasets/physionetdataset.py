@@ -14,6 +14,7 @@ import wfdb
 import matplotlib.pyplot as plt
 from scipy.signal import resample
 from sklearn.preprocessing import StandardScaler, MultiLabelBinarizer
+import itertools
 
 # Basically: generate per-patient files, with segmented beats and labels
 # these files are an input in datagenerator class, which concatenates e.g. train and test patients kako sto treba
@@ -141,9 +142,9 @@ def segment_beats(choice, ann, signal, beat_len, start_minute, end_minute, fs):
 
 class PhysionetDataset(Dataset):
 
-    def __init__(self, name, task): ## classes, segmentation, selected channel
+    def __init__(self, name, task, eval): ## classes, segmentation, selected channel
         
-        super(PhysionetDataset, self).__init__(task)
+        super(PhysionetDataset, self).__init__(task, eval)
 
         self.name = name
 
@@ -264,7 +265,7 @@ class PhysionetDataset(Dataset):
 
     def get_data(self):
         # only to be used for optimizer for now, should be changed/improved
-        max_size=50 # FOr now, should remove this
+        max_size=100 # FOr now, should remove this
         # Load PTB-XL data
         X = [self.get_signal(self.path,id) for id in self.patientids[:max_size]]
 
@@ -298,8 +299,9 @@ class PhysionetDataset(Dataset):
 
 
     def get_crossval_splits(self, split=9):
-        max_size=50 # FOr now, should remove this
-        # Load PTB-XL data
+        ## this is for interpatient
+        max_size=100 # FOr now, should remove this
+
         X_train = [self.get_signal(self.path,id) for id in self.ds1_patients_train[:max_size]]
         X_test = [self.get_signal(self.path,id) for id in self.ds2_patients[:max_size]]
         X_val = [self.get_signal(self.path,id) for id in self.ds1_patients_val[:max_size]]
@@ -312,13 +314,7 @@ class PhysionetDataset(Dataset):
         y_train = [self.get_annotation(self.path,id) for id in self.ds1_patients_train[:max_size]]
         y_test = [self.get_annotation(self.path,id) for id in self.ds2_patients[:max_size]]
         y_val = [self.get_annotation(self.path,id) for id in self.ds1_patients_val[:max_size]]
-        
-        '''
-            old: self.encoded_labels.iloc[:max_size,:]
-
-            this here needs to be custom to physionet 
-
-        '''    
+    
         
         print("before")
         # Preprocess label data
@@ -339,6 +335,38 @@ class PhysionetDataset(Dataset):
         # print(y_val.shape)
         return X_train, y_train, X_val, y_val, X_test, y_test
 
+    def get_crossval_splits_intrapatient(self, X, Y, split=9):
+        ## this is for interpatient
+        indices = np.sum(Y, axis=1) > 0 
+        data = X[indices]
+        labels = np.array(Y[indices])
+
+
+        train, test= next(itertools.islice(self.k_fold.split(data,labels), split, None))
+        X_test, y_test = data[test], labels[test]
+        if split != 0:
+            val_split = split - 1
+        else:
+            val_split = self.k_fold.n_splits - 1
+        # for now always have a different validation set
+        train, val= next(itertools.islice(self.k_fold.split(data,labels), val_split, None))
+        X_val, y_val = data[val], labels[val]
+        mask = np.ones(data.shape[0],dtype=bool) # keep only train indices to one
+        mask[test]=0
+        mask[val]=0
+        X_train, y_train = data[mask], labels[mask]
+
+        print(X_test.shape)
+        print(X_val.shape)
+
+        # Preprocess signal data
+        #self.X_train, self.X_val, self.X_test = preprocess_signals(self.X_train, self.X_val, self.X_test, self.outputfolder+self.experiment_name+'/data/')
+        # self.n_classes = self.y_train.shape[1]
+        # partition = {"train": self.y_test.filename_lr.values.tolist() ,"validation":self.y_test.filename_lr.values.tolist(), "test":self.y_test.filename_lr.values.tolist()}
+        print(len(y_test))# print(y_test.shape)
+        # print(y_train.shape)
+        # print(y_val.shape)
+        return X_train, y_train, X_val, y_val, X_test, y_test
 
 
     '''

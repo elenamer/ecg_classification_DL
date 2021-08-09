@@ -10,7 +10,7 @@ aami_annots_list=['N','L','R','e','j','S','A','a','J','V','E','F','/','f','Q']
 
 class INCARTDataset(PhysionetDataset):
 
-    def __init__(self, task, lead = 'II'): ## classes, segmentation, selected channel
+    def __init__(self, task, fs=None, eval='inter', lead = 'II'): ## classes, segmentation, selected channel
         self.name = "incartdb"
         super(INCARTDataset, self).__init__(self.name, task)
 
@@ -19,6 +19,13 @@ class INCARTDataset(PhysionetDataset):
         # for patient-specific
         
         ## Update patient splits
+                
+        self.freq = 257
+        if fs is not None:
+            self.new_freq = fs
+        else:
+            self.new_freq = self.freq
+
 
         self.common_patients = [101,106,108,109,112,114,115,116,118,119,122,124,100,103,105,111,113,117,121,123]
         self.specific_patients = [201,203,205,207,208,209,215,220,223,230,200,202,210,212,213,214,219,221,222,228,231,232,233,234]
