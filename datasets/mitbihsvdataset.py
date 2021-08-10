@@ -13,7 +13,7 @@ class MITBIHSVDataset(PhysionetDataset):
     def __init__(self, task, fs=None, eval='inter', lead = 'II' ): ## classes, segmentation, selected channel
         name = "svdb"
         self.name= name
-        super(MITBIHSVDataset, self).__init__(name, task)
+        super(MITBIHSVDataset, self).__init__(name, task, eval)
 
         #self.classes = ["N", "S", "V", "F", "Q"]
 

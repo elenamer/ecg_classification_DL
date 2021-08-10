@@ -12,7 +12,7 @@ class INCARTDataset(PhysionetDataset):
 
     def __init__(self, task, fs=None, eval='inter', lead = 'II'): ## classes, segmentation, selected channel
         self.name = "incartdb"
-        super(INCARTDataset, self).__init__(self.name, task)
+        super(INCARTDataset, self).__init__(self.name, task, eval)
 
         # self.classes = ["N", "S", "V", "F", "Q"]
 
