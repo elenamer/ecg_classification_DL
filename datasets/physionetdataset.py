@@ -208,11 +208,16 @@ class PhysionetDataset(Dataset):
         
         '''
         mlb_rhy = MultiLabelBinarizer(classes=range(len(self.class_names.values)))
-        encoded_index = pd.DataFrame(ann.symbol, columns=["orig_label"], index = ann.sample)
+
         #encoded_index.set_index("FileName", inplace=True)
-        encoded_index["labels_mlb"] = ""
         print(len(set(ann.sample)))
         print(len(ann.sample))
+        indices = sorted(dict(zip(reversed(ann.sample), range(len(ann.sample)-1, -1, -1))).values())
+        ann.sample = list(np.array(ann.sample)[indices])
+        ann.symbol = list(np.array(ann.symbol)[indices])
+        encoded_index = pd.DataFrame(ann.symbol, columns=["orig_label"], index = ann.sample)
+        encoded_index["labels_mlb"] = ""
+
         for ind, sample_ind in enumerate(ann.sample):
             #print(row)        
             rhythms =[self.classes[str(l)] for l in [encoded_index.at[sample_ind, "orig_label"]] if str(l) in self.classes.keys()] 

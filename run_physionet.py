@@ -18,8 +18,8 @@ from datasets.ptbxldataset import PTBXLDataset
 from evaluation.experiment import Experiment 
 
 combinations_dict = {
-    "form" : [(MITBIHARDataset)],
-    "aami": [(MITBIHARDataset), (INCARTDataset), (MITBIHSVDataset)]
+    #"form" : [(MITBIHARDataset)],
+    "aami": [(MITBIHSVDataset), (INCARTDataset), (MITBIHSVDataset)]
     #"rhythm" : [(MITBIHARDataset, 10, 10)]#, (Arr10000Dataset, 10, 10)],
     #'cinc2017' : [(CPSC2018Dataset, 30, 60), (CincChallenge2017Dataset, 10, 30), (PTBXLDataset, 10, 10), (Arr10000Dataset, 10, 10)],
     #"cpsc2018" : [(CPSC2018Dataset, 30, 60), (PTBXLDataset, 10, 10)]   
@@ -29,7 +29,7 @@ combinations_dict = {
 for model, sec, freq in [(CPSCWinnerNet, 0.72, 500), (ResNet, 0.72, 250), (CNN, 0.72, 360),(RTACNN, 30, 300)]: #(CNN, 10, 360), (RTACNN, 30, 300), (CPSCWinnerNet, 144, 500), (ResNet, 2.5, 250), (WaveletModel, 10, 100) ]:
     for task in combinations_dict.keys():
         for dat in combinations_dict[task]:
-            exp3 = Experiment(dat, Transform, freq, sec, model, task, 'intra', 100)
+            exp3 = Experiment(dat, SegmentBeats, freq, sec, model, task, 'intra', 100)
             exp3.run()
             exp3.evaluate()
 
