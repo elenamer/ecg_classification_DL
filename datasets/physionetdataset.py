@@ -211,11 +211,14 @@ class PhysionetDataset(Dataset):
         encoded_index = pd.DataFrame(ann.symbol, columns=["orig_label"], index = ann.sample)
         #encoded_index.set_index("FileName", inplace=True)
         encoded_index["labels_mlb"] = ""
+        print(len(set(ann.sample)))
+        print(len(ann.sample))
         for ind, sample_ind in enumerate(ann.sample):
             #print(row)        
             rhythms =[self.classes[str(l)] for l in [encoded_index.at[sample_ind, "orig_label"]] if str(l) in self.classes.keys()] 
-            encoded_index.at[sample_ind, "labels_mlb"] = tuple(rhythms)
             #print(tuple(rhythms))
+            #print(sample_ind)
+            encoded_index.at[sample_ind, "labels_mlb"] = tuple(rhythms)
 
         encoded_index["labels_mlb"] = mlb_rhy.fit_transform(encoded_index["labels_mlb"]).tolist()
         #print(encoded_index["labels_mlb"])
@@ -337,7 +340,8 @@ class PhysionetDataset(Dataset):
 
     def get_crossval_splits_intrapatient(self, X, Y, split=9):
         ## this is for interpatient
-        indices = np.sum(Y, axis=1) > 0 
+        
+        indices = np.sum(np.array(Y), axis=1) > 0 
         data = X[indices]
         labels = np.array(Y[indices])
 
