@@ -140,7 +140,6 @@ class RTACNN(tf.keras.layers.Layer):
         self.dp3 = tf.keras.layers.Dropout(0.7)
         self.dense3 = tf.keras.layers.Dense(100,  activation='relu')
         self.dp4 = tf.keras.layers.Dropout(0.7)
-        self.dense4 = tf.keras.layers.Dense(3,  activation='softmax')
         super().build(input_shape)
         
     def call(self, x):
