@@ -45,9 +45,9 @@ initial_classes_dict = {
 
 class Arr10000Dataset(Dataset):
 
-    def __init__(self, task, fs=None, lead = 'II'): ## classes, segmentation, selected channel
+    def __init__(self, task, fs=None, eval="inter", lead = 'II'): ## classes, segmentation, selected channel
         self.name = 'arr10000'
-        super(Arr10000Dataset,self).__init__(task)
+        super(Arr10000Dataset,self).__init__(task, eval)
         
         self.path = "./data/"+self.name
 

@@ -24,9 +24,9 @@ WFDB = "/usr/local/bin"#/home/elena/wfdb/bin"
 
 class CincChallenge2017Dataset(Dataset):
 
-    def __init__(self, task, fs=None): ## classes, segmentation, selected channel
+    def __init__(self, task, eval="inter", fs=None): ## classes, segmentation, selected channel
         self.name = 'cinc2017'#name
-        super(CincChallenge2017Dataset, self).__init__(task)
+        super(CincChallenge2017Dataset, self).__init__(task, eval)
         self.path = "./data/"+self.name
         self.patientids = self.get_recordids()
         self.index = self.get_index()

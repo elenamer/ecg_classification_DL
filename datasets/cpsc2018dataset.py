@@ -23,9 +23,9 @@ leads = [ 'I','II', 'III', 'aVL','aVF', 'V1','V2','V3','V4','V5','V6']
 
 class CPSC2018Dataset(Dataset):
 
-    def __init__(self, task, fs=None, lead='II'): ## classes, segmentation, selected channel
+    def __init__(self, task, fs=None, eval="inter", lead='II'): ## classes, segmentation, selected channel
         self.name = 'cpsc2018'#name
-        super(CPSC2018Dataset, self).__init__(task)
+        super(CPSC2018Dataset, self).__init__(task, eval)
         self.path = "./data/"+self.name
         #with open(self.path+"RECORDS"+choice.upper()) as f:
 

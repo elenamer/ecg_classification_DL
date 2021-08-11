@@ -58,9 +58,9 @@ leads = [ 'I','II', 'III', 'aVL','aVF', 'V1','V2','V3','V4','V5','V6']
 
 class PTBXLDataset(Dataset):
 
-    def __init__(self, task, fs = None, lead= 'II'): ## classes, segmentation, selected channel
+    def __init__(self, task, fs = None, eval="inter", lead= 'II'): ## classes, segmentation, selected channel
         self.name = 'ptb-xl'
-        super(PTBXLDataset, self).__init__(task)
+        super(PTBXLDataset, self).__init__(task, eval)
         self.path = "./data/"+self.name+"/"
         self.num_channels = 12
         self.patientids = self.get_patientids()
