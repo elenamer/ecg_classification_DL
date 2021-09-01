@@ -48,8 +48,13 @@ class SlidingWindow(Transform):
             #print(sig)
             step = int(self.input_size*overlap)
             nrows = ((len(sig)-self.input_size)//step)+1
-            print(nrows)
-            windows = sig[step*np.arange(nrows)[:,None] + np.arange(self.input_size)]
+            #print(nrows)
+            if nrows <= 0:
+                windows = np.array([sig])
+                nrows = 1
+            else:
+                windows = sig[step*np.arange(nrows)[:,None] + np.arange(self.input_size)]
+            #print(windows.shape)
             #print(windows)
             new_data.extend(windows.tolist())
             if labels is not None:

@@ -97,8 +97,9 @@ class SegmentBeats(Transform):
                 continue
             #data.append(sig)
             data.append(normalize(sig))
-
-            all_labls.append(label)
+            #print("Label")
+            #print(label)
+            all_labls.append(label["labels_mlb"])
 
         # print(skipped)
         # print(len(data))

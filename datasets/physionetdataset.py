@@ -59,6 +59,7 @@ def remove_base_gain(ecgsig, gains, bases):
     for i in np.arange(0,np.size(ecgsig,1)):
         sig[:,i]=(sig[:,i] - bases[i]) / gains[i]
     return sig 
+    
 def segment_beats(choice, ann, signal, beat_len, start_minute, end_minute, fs):
 
     N_SAMPLES_BEFORE_R_static=int(fs/3.6)
@@ -215,23 +216,35 @@ class PhysionetDataset(Dataset):
         indices = sorted(dict(zip(reversed(ann.sample), range(len(ann.sample)-1, -1, -1))).values())
         ann.sample = list(np.array(ann.sample)[indices])
         ann.symbol = list(np.array(ann.symbol)[indices])
-        encoded_index = pd.DataFrame(ann.symbol, columns=["orig_label"], index = ann.sample)
+        ann.aux_note = list(np.array(ann.aux_note)[indices])
+
+        encoded_index = pd.DataFrame(np.column_stack((ann.symbol, ann.aux_note)), columns=["orig_label","ep_label"], index = ann.sample)
         encoded_index["labels_mlb"] = ""
+        encoded_index["episodes_mlb"] = ""
 
         for ind, sample_ind in enumerate(ann.sample):
             #print(row)        
             rhythms =[self.classes[str(l)] for l in [encoded_index.at[sample_ind, "orig_label"]] if str(l) in self.classes.keys()] 
-            #print(tuple(rhythms))
-            #print(sample_ind)
+            #print(str(encoded_index.at[sample_ind, "ep_label"]))
+            if str(encoded_index.at[sample_ind, "ep_label"]) in self.classes.keys():
+                episode = self.classes[str(encoded_index.at[sample_ind, "ep_label"])]
+                if episode != 0:
+                    print("EPPPPPP")
+                    print(self.classes)
+                    print(episode)
+            else:
+                episode = ''
+
             encoded_index.at[sample_ind, "labels_mlb"] = tuple(rhythms)
+            encoded_index.at[sample_ind, "ep_label"] = episode
 
         encoded_index["labels_mlb"] = mlb_rhy.fit_transform(encoded_index["labels_mlb"]).tolist()
         #print(encoded_index["labels_mlb"])
-        encoded_index = encoded_index[["labels_mlb"]]
+        #encoded_index = encoded_index[["labels_mlb"]]
         #print(encoded_index)
 
-        encoded_index = encoded_index[(encoded_index.labels_mlb.apply(lambda x:sum(x)) > 0).values]
-
+        #encoded_index = encoded_index[(encoded_index.labels_mlb.apply(lambda x:sum(x)) > 0).values]
+        #print(encoded_index.ep_label.values)
         return encoded_index
 
 
@@ -253,12 +266,6 @@ class PhysionetDataset(Dataset):
         return sig
 
 
-    def smt(self, indices, labels):
-        row = self.index[self.index.filename_lr == idx]
-        labls = [self.morphological_classes[str(l)] for l in row.scp_codes.values[0].keys() if str(l) in self.morphological_classes.keys()] 
-        rhytms =[self.rhythmic_classes[str(l)] for l in row.rhythm.values[0] if str(l) in self.rhythmic_classes.keys()] 
-        return labls, rhytms
-
     def get_annotation(self, path, idx):
         ann = wfdb.rdann(path+idx, "atr")
 
@@ -267,6 +274,8 @@ class PhysionetDataset(Dataset):
         keep it like this for now, but it's a problem that get_annotation returns different things than in other datasets
         
         '''
+        print(ann.symbol)
+        print([l[:-1] for l in ann.aux_note])
         encoded_index = self.encode_labels(ann)
         return encoded_index
 
@@ -292,7 +301,7 @@ class PhysionetDataset(Dataset):
         print("before")
         # Preprocess label data
 
-        y = [df["labels_mlb"] for df in y]
+        #y = [df["labels_mlb"] for df in y]
 
         print(X.shape)
 
@@ -326,10 +335,10 @@ class PhysionetDataset(Dataset):
         
         print("before")
         # Preprocess label data
-
-        y_train = [df["labels_mlb"] for df in y_train]
-        y_test = [df["labels_mlb"] for df in y_test]
-        y_val = [df["labels_mlb"] for df in y_val]
+        print(y_train[0])
+        #y_train = [df["episodes_mlb"] for df in y_train]
+        #y_test = [df["episodes_mlb"] for df in y_test]
+        #y_val = [df["episodes_mlb"] for df in y_val]
 
         print(X_test.shape)
         print(X_val.shape)
@@ -347,7 +356,8 @@ class PhysionetDataset(Dataset):
         ## this is for interpatient
         
         indices = np.sum(np.array(Y), axis=1) > 0 
-        data = X[indices]
+        print(X)
+        data = np.array(X)[indices]
         labels = np.array(Y[indices])
 
 

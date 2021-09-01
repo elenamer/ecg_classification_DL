@@ -1,6 +1,7 @@
 
 
 
+from processing.segmentepisodes import SegmentEpisodes
 from warnings import resetwarnings
 from models.model import Classifier
 import os
@@ -12,6 +13,7 @@ import wandb
 import seaborn as sns 
 import matplotlib.pyplot as plt
 import pandas as pd
+from sklearn.preprocessing import label_binarize
 
 def evaluate_metrics(confusion_matrix):
     # https://stackoverflow.com/questions/31324218/scikit-learn-how-to-obtain-true-positive-true-negative-false-positive-and-fal
@@ -46,10 +48,12 @@ def evaluate_metrics(confusion_matrix):
     results_dict = {"ACC_macro":ACC_macro, "ACC":ACC, "TPR":TPR, "TNR":TNR, "PPV":PPV}
     return ACC, TPR, TNR, PPV, F1, support
 
+wandb_flag = False
 
+MAX_SECONDS = 120
 
 class Experiment():
-    def __init__(self, dataset, transform, freq, input_seconds, model, task, evaluation_strategy, epochs, aggregate = False, save_model = False):
+    def __init__(self, dataset, transform, freq, input_seconds, model, task, evaluation_strategy, epochs, aggregate = False, save_model = False, episodes = False):
         self.fs = freq
         self.eval = evaluation_strategy
         self.dataset = dataset(task = task, fs = self.fs, eval = self.eval)
@@ -60,8 +64,9 @@ class Experiment():
         model_name = model.get_name()
         if model_name == "wavelet":
             self.is_dnn=False
-        self.task = task
 
+        self.task = task
+        
         self.classes = self.dataset.class_names
 
         self.path = "experiments"+os.sep+self.dataset.name+os.sep+self.transform.name+str(self.input_size)+os.sep+model_name+os.sep+self.task  
@@ -71,6 +76,8 @@ class Experiment():
 
         self.epochs = epochs
         self.aggregate = aggregate
+        self.episodes = episodes
+        self.episodestransform = SegmentEpisodes(MAX_SECONDS*self.fs, self.fs)
     
     def run(self):
 
@@ -80,9 +87,10 @@ class Experiment():
         for n in range(self.dataset.k_fold.get_n_splits()):
             # (look at ptbxl code, basically go through all models for a specific dataset)
             os.makedirs(self.path+os.sep+str(n)+os.sep+"models", exist_ok=True)
-            run = wandb.init(project=self.name, reinit=True)            
-            wandb.run.name = "crossval"+str(n)
-            wandb.run.save()
+            if wandb_flag:
+                run = wandb.init(project=self.name, reinit=True)            
+                wandb.run.name = "crossval"+str(n)
+                wandb.run.save()
             if self.is_dnn:
                 tf.keras.backend.clear_session()
                 self.classifier = Classifier(self.model(), self.input_size, len(self.classes), path=self.path+os.sep+str(n), learning_rate=0.0001, epochs = self.epochs) ## lr for good cpsc run is ~0.0001 - 0.001
@@ -96,6 +104,14 @@ class Experiment():
                 X_train, Y_train, X_val, Y_val, X_test, Y_test = self.dataset.get_crossval_splits(split=n)
                 
                 self.transform.reset_idmap()
+                
+                if self.episodes:
+                    X_test, Y_test = self.episodestransform.process(X = X_test, labels = Y_test)
+                    X_val, Y_val = self.episodestransform.process(X = X_val, labels = Y_val)
+                    X_train, Y_train = self.episodestransform.process(X = X_train, labels = Y_train)
+                    Y_test = label_binarize(Y_test, classes=range(len(self.dataset.class_names.values)))
+                    Y_val = label_binarize(Y_val, classes=range(len(self.dataset.class_names.values)))
+                    Y_train = label_binarize(Y_train, classes=range(len(self.dataset.class_names.values)))
 
                 X_test, Y_test, idmap_test = self.transform.process(X = X_test, labels = Y_test)
                 X_val, Y_val, idmap_val = self.transform.process(X = X_val, labels = Y_val)
@@ -105,14 +121,31 @@ class Experiment():
                 
                 X, Y = self.dataset.get_data()
                 self.transform.reset_idmap()
+                
+                if self.episodes:
+                    X, Y = self.episodestransform.process(X = X, labels = Y)
+                    Y = label_binarize(Y, classes=range(len(self.dataset.class_names.values)))
 
-                X, Y, idmap = self.transform.process(X = X, labels = Y)
+
+                if not self.episodes:
+                    ### intrapatient with segment beats doesn't work with aggregation
+                    X, Y, idmap = self.transform.process(X = X, labels = Y)
 
                 X_train, Y_train, X_val, Y_val, X_test, Y_test = self.dataset.get_crossval_splits_intrapatient(X=X, Y=Y, split=n)
 
+                if self.episodes:
+                    X_test, Y_test, idmap_test = self.transform.process(X = X_test, labels = Y_test)
+                    X_val, Y_val, idmap_val = self.transform.process(X = X_val, labels = Y_val)
+                    X_train, Y_train, idmap_train = self.transform.process(X = X_train, labels = Y_train)
+
 
             print("after processing")
+            print("class distribution:")
+            print(Y_train.shape)
+            print(Y_train[0].shape)
+            print(Y_train.sum(axis=0))
 
+            #['N' '' list([1, 0, 0, 0, 0]) '']
 
             Y_test.dump(self.path+os.sep+str(n)+os.sep+"Y_test.npy") 
             Y_val.dump(self.path+os.sep+str(n)+os.sep+"Y_val.npy") 
@@ -145,7 +178,9 @@ class Experiment():
             if self.save:
                 os.makedirs(self.path+os.sep+str(n)+os.sep+"model", exist_ok=True)
                 self.classifier.save(self.path+os.sep+str(n)+os.sep+"model")
-            run.finish()
+            if wandb_flag:
+                run.finish()
+                
         #     distrs_splits.append(np.sum(Y_test, axis=0))
         
         # SMALL_SIZE = 8
