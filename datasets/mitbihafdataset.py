@@ -11,14 +11,20 @@ aami_annots_list=['N','L','R','e','j','S','A','a','J','V','E','F','/','f','Q']
 
 class AFDataset(PhysionetDataset):
 
-    def __init__(self, task, lead = 'II'): ## classes, segmentation, selected channel
+    def __init__(self, task, fs=None, eval='inter', lead = 'II'): ## classes, segmentation, selected channel
         self.name = "afdb"
-        super(AFDataset, self).__init__(self.name, task)
+        super(AFDataset, self).__init__(self.name, task, eval)
 
         # self.classes = ["N", "S", "V", "F", "Q"]
 
         # for patient-specific
-        
+                
+        self.freq = 360
+        if fs is not None:
+            self.new_freq = fs
+        else:
+            self.new_freq = self.freq
+
         ## Update patient splits
 
         self.common_patients = [101,106,108,109,112,114,115,116,118,119,122,124,100,103,105,111,113,117,121,123]

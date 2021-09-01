@@ -11,11 +11,17 @@ aami_annots_list=['N','L','R','e','j','S','A','a','J','V','E','F','/','f','Q']
 
 class LongTermAFDataset(PhysionetDataset):
 
-    def __init__(self, task, lead = 'II'): ## classes, segmentation, selected channel
+    def __init__(self, task, fs=None, eval='inter',  lead = 'II'): ## classes, segmentation, selected channel
         self.name = "ltafdb"
-        super(LongTermAFDataset, self).__init__(self.name, task)
+        super(LongTermAFDataset, self).__init__(self.name, task, eval)
 
         #self.classes = ["N", "S", "V", "F", "Q"]
+        
+        self.freq = 128
+        if fs is not None:
+            self.new_freq = fs
+        else:
+            self.new_freq = self.freq
 
         # for patient-specific
         
