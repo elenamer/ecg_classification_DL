@@ -48,7 +48,7 @@ def evaluate_metrics(confusion_matrix):
     results_dict = {"ACC_macro":ACC_macro, "ACC":ACC, "TPR":TPR, "TNR":TNR, "PPV":PPV}
     return ACC, TPR, TNR, PPV, F1, support
 
-wandb_flag = False
+wandb_flag = True
 
 MAX_SECONDS = 120
 
@@ -69,7 +69,7 @@ class Experiment():
         
         self.classes = self.dataset.class_names
 
-        self.path = "experiments"+os.sep+self.dataset.name+os.sep+self.transform.name+str(self.input_size)+os.sep+model_name+os.sep+self.task  
+        self.path = "experiments"+os.sep+self.dataset.name+os.sep+self.transform.name+str(self.input_size)+os.sep+model_name+os.sep+self.task+os.sep+self.eval  
         os.makedirs(self.path, exist_ok=True)
         self.save = save_model
         self.name = self.dataset.name+"_"+self.transform.name+str(self.input_size)+"_"+model_name+"_"+self.task+"_"+str(self.fs)
@@ -88,7 +88,7 @@ class Experiment():
             # (look at ptbxl code, basically go through all models for a specific dataset)
             os.makedirs(self.path+os.sep+str(n)+os.sep+"models", exist_ok=True)
             if wandb_flag:
-                run = wandb.init(project=self.name, reinit=True)            
+                run = wandb.init(project=self.name, reinit=True, job_type=self.eval)            
                 wandb.run.name = "crossval"+str(n)
                 wandb.run.save()
             if self.is_dnn:
