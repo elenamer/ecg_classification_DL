@@ -39,6 +39,17 @@ class AFDataset(PhysionetDataset):
         self.lead = lead 
 
         self.stringify_patientids()
+        self.remove_empty_records()
+
+    def remove_empty_records(self):
+        temp = self.patientids
+        with open(self.path+"notes.txt") as f:
+            lines = f.read().splitlines()
+        for line in lines:
+            words = line.split("\t")
+            if words[1] == "Signals unavailable":
+                temp.remove(words[0])
+        self.patientids = temp
 
     def stringify_patientids(self):
         self.common_patients = [str(id) for id in self.common_patients]
