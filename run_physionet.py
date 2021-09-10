@@ -4,6 +4,7 @@ from datasets.mitbihsvdataset import MITBIHSVDataset
 from datasets.incartdataset import INCARTDataset
 from processing.repeatcrop import RepeatCrop
 from datasets.arr10000dataset import Arr10000Dataset
+from datasets.mitbihafdataset import AFDataset
 from datasets.cinc2017dataset import CincChallenge2017Dataset
 from models.rtacnn import RTACNN
 from models.ptb2020wavelet import WaveletModel
@@ -19,8 +20,8 @@ from datasets.ptbxldataset import PTBXLDataset
 from evaluation.experiment import Experiment 
 
 combinations_dict = {
-    #"form" : [(MITBIHARDataset)],LongTermAFDataset
-    "rhythm": [(LongTermAFDataset), (INCARTDataset), (MITBIHARDataset)]
+    "form" : [(MITBIHARDataset), (INCARTDataset), (MITBIHSVDataset), (LongTermAFDataset)],
+    "aami": [(MITBIHARDataset), (INCARTDataset), (MITBIHSVDataset), (LongTermAFDataset)]
     #"rhythm" : [(MITBIHARDataset, 10, 10)]#, (Arr10000Dataset, 10, 10)],
     #'cinc2017' : [(CPSC2018Dataset, 30, 60), (CincChallenge2017Dataset, 10, 30), (PTBXLDataset, 10, 10), (Arr10000Dataset, 10, 10)],
     #"cpsc2018" : [(CPSC2018Dataset, 30, 60), (PTBXLDataset, 10, 10)]   
@@ -29,10 +30,10 @@ combinations_dict = {
 # if physionet dataset & rhythm task => segment episodes ( Transform/SlidingWindow and flag=true)
 # if physionet dataset & form task => segment beats (SegmentBeats and flag=false)
 
-for model, sec, freq in [(CPSCWinnerNet, 144, 500), (ResNet, 10, 250), (CNN, 10, 360),(RTACNN, 30, 300)]: #(CNN, 10, 360), (RTACNN, 30, 300), (CPSCWinnerNet, 144, 500), (ResNet, 2.5, 250), (WaveletModel, 10, 100) ]:
+for model, sec, freq in [(CNN, 0.72, 360),(CPSCWinnerNet, 0.72, 500), (ResNet, 0.72, 250), (CNN, 10, 360),(RTACNN, 0.72, 300)]: #(CNN, 10, 360), (RTACNN, 30, 300), (CPSCWinnerNet, 144, 500), (ResNet, 2.5, 250), (WaveletModel, 10, 100) ]:
     for task in combinations_dict.keys():
         for dat in combinations_dict[task]:
-            exp3 = Experiment(dat, Transform, freq, sec, model, task, 'intra', 100, episodes=True)
+            exp3 = Experiment(dat, SegmentBeats, freq, sec, model, task, 'inter', 100, episodes=False)
             exp3.run()
             exp3.evaluate()
 

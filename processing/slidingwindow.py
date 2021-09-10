@@ -60,7 +60,8 @@ class SlidingWindow(Transform):
             if labels is not None:
                 new_labels.extend([labels[ind]] * nrows)
             idmap.extend([ind] * nrows)
-            #print(idmap)
+        self.groupmap = idmap
+        #print(idmap)
         
         if labels is None:
             new_data = super(SlidingWindow, self).process(new_data)

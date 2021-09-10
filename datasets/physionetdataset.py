@@ -229,8 +229,8 @@ class PhysionetDataset(Dataset):
             if str(encoded_index.at[sample_ind, "ep_label"]) in self.classes.keys():
                 episode = self.classes[str(encoded_index.at[sample_ind, "ep_label"])]
                 if episode != 0:
-                    print("EPPPPPP")
-                    print(self.classes)
+                    #print("EPPPPPP")
+                    #print(self.classes)
                     print(episode)
             else:
                 episode = ''
@@ -315,7 +315,7 @@ class PhysionetDataset(Dataset):
         return X, y
 
 
-    def get_crossval_splits(self, split=9):
+    def get_split_interpatient(self, split=9):
         ## this is for interpatient
         max_size=100 # FOr now, should remove this
 
@@ -339,6 +339,41 @@ class PhysionetDataset(Dataset):
         #y_train = [df["episodes_mlb"] for df in y_train]
         #y_test = [df["episodes_mlb"] for df in y_test]
         #y_val = [df["episodes_mlb"] for df in y_val]
+
+        print(X_test.shape)
+        print(X_val.shape)
+
+        # Preprocess signal data
+        #self.X_train, self.X_val, self.X_test = preprocess_signals(self.X_train, self.X_val, self.X_test, self.outputfolder+self.experiment_name+'/data/')
+        # self.n_classes = self.y_train.shape[1]
+        # partition = {"train": self.y_test.filename_lr.values.tolist() ,"validation":self.y_test.filename_lr.values.tolist(), "test":self.y_test.filename_lr.values.tolist()}
+        print(len(y_test))# print(y_test.shape)
+        # print(y_train.shape)
+        # print(y_val.shape)
+        return X_train, y_train, X_val, y_val, X_test, y_test
+
+    def get_crossval_splits(self, X, Y, groups, split=9):
+        ## this is for interpatient
+        
+        indices = np.sum(np.array(Y), axis=1) > 0 
+        print(X)
+        data = np.array(X)[indices]
+        labels = np.array(Y[indices])
+        groups = np.array(np.array(groups)[indices])
+
+        train, test= next(itertools.islice(self.strat_group_k_fold.split(data,labels.argmax(1),groups), split, None))
+        X_test, y_test = data[test], labels[test]
+        if split != 0:
+            val_split = split - 1
+        else:
+            val_split = self.strat_group_k_fold.n_splits - 1
+        # for now always have a different validation set
+        train, val= next(itertools.islice(self.strat_group_k_fold.split(data,labels.argmax(1),groups), val_split, None))
+        X_val, y_val = data[val], labels[val]
+        mask = np.ones(data.shape[0],dtype=bool) # keep only train indices to one
+        mask[test]=0
+        mask[val]=0
+        X_train, y_train = data[mask], labels[mask]
 
         print(X_test.shape)
         print(X_val.shape)

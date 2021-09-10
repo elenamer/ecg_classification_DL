@@ -100,8 +100,8 @@ class Experiment():
                 self.classifier = self.model(n_classes=len(self.classes), freq=self.fs, outputfolder=self.path+os.sep+str(n))
             print(n)
 
-            if self.eval == 'inter':
-                X_train, Y_train, X_val, Y_val, X_test, Y_test = self.dataset.get_crossval_splits(split=n)
+            if self.eval == 'fixed':
+                X_train, Y_train, X_val, Y_val, X_test, Y_test = self.dataset.get_split_interpatient(split=n)
                 
                 self.transform.reset_idmap()
                 
@@ -117,8 +117,28 @@ class Experiment():
                 X_val, Y_val, idmap_val = self.transform.process(X = X_val, labels = Y_val)
                 X_train, Y_train, idmap_train = self.transform.process(X = X_train, labels = Y_train)
 
-            else:
+            elif self.eval=='inter':
+                X, Y = self.dataset.get_data()
+                self.transform.reset_idmap()
                 
+                if self.episodes:
+                    X, Y = self.episodestransform.process(X = X, labels = Y)
+                    groups = self.episodestransform.groupmap
+                    Y = label_binarize(Y, classes=range(len(self.dataset.class_names.values)))
+
+                if not self.episodes:
+                    ### intrapatient with segment beats doesn't work with aggregation
+                    X, Y, idmap = self.transform.process(X = X, labels = Y)
+                    groups = self.transform.groupmap
+
+                X_train, Y_train, X_val, Y_val, X_test, Y_test = self.dataset.get_crossval_splits(X=X, Y=Y, groups=groups, split=n)
+
+                if self.episodes:
+                    X_test, Y_test, idmap_test = self.transform.process(X = X_test, labels = Y_test)
+                    X_val, Y_val, idmap_val = self.transform.process(X = X_val, labels = Y_val)
+                    X_train, Y_train, idmap_train = self.transform.process(X = X_train, labels = Y_train)
+               
+            else:
                 X, Y = self.dataset.get_data()
                 self.transform.reset_idmap()
                 
@@ -181,31 +201,31 @@ class Experiment():
             if wandb_flag:
                 run.finish()
                 
-        #     distrs_splits.append(np.sum(Y_test, axis=0))
+            distrs_splits.append(np.sum(Y_test, axis=0))
         
-        # SMALL_SIZE = 8
-        # MEDIUM_SIZE = 10
-        # BIGGER_SIZE = 14
+        SMALL_SIZE = 8
+        MEDIUM_SIZE = 10
+        BIGGER_SIZE = 14
 
-        # plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
-        # plt.rc('axes', titlesize=BIGGER_SIZE)     # fontsize of the axes title
-        # plt.rc('axes', labelsize=BIGGER_SIZE)    # fontsize of the x and y labels
-        # plt.rc('xtick', labelsize=BIGGER_SIZE)    # fontsize of the tick labels
-        # plt.rc('ytick', labelsize=BIGGER_SIZE)    # fontsize of the tick labels
-        # #plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
-        # #plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+        plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
+        plt.rc('axes', titlesize=BIGGER_SIZE)     # fontsize of the axes title
+        plt.rc('axes', labelsize=BIGGER_SIZE)    # fontsize of the x and y labels
+        plt.rc('xtick', labelsize=BIGGER_SIZE)    # fontsize of the tick labels
+        plt.rc('ytick', labelsize=BIGGER_SIZE)    # fontsize of the tick labels
+        #plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
+        #plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
-        # fig = plt.figure(figsize=(17,8))
-        # axes = fig.add_subplot(1,1,1)
-        # df = pd.DataFrame(distrs_splits)
-        # df = df.astype(int)
-        # eps = 10e-1
+        fig = plt.figure(figsize=(17,8))
+        axes = fig.add_subplot(1,1,1)
+        df = pd.DataFrame(distrs_splits)
+        df = df.astype(int)
+        eps = 10e-1
         
-        # sns.heatmap(df+eps, annot=df.values, fmt="d")
-        # labels = axes.get_yticklabels()
-        # axes.set_yticklabels(labels, rotation=0) 
-        # fig.tight_layout()
-        # fig.savefig(self.path+os.sep+self.task+'-labels-heatmap.png', dpi=400)
+        sns.heatmap(df+eps, annot=df.values, fmt="d")
+        labels = axes.get_yticklabels()
+        axes.set_yticklabels(labels, rotation=0) 
+        fig.tight_layout()
+        fig.savefig(self.path+os.sep+self.task+'-labels-heatmap.png', dpi=400)
 
 
     def evaluate(self):
