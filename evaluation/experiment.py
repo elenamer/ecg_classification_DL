@@ -131,7 +131,7 @@ class Experiment():
                     X, Y, idmap = self.transform.process(X = X, labels = Y)
                     groups = self.transform.groupmap
 
-                X_train, Y_train, X_val, Y_val, X_test, Y_test = self.dataset.get_crossval_splits(X=X, Y=Y, groups=groups, split=n)
+                X_train, Y_train, X_val, Y_val, X_test, Y_test = self.dataset.get_crossval_splits(X=X, Y=Y, recording_groups=groups, split=n)
 
                 if self.episodes:
                     X_test, Y_test, idmap_test = self.transform.process(X = X_test, labels = Y_test)
@@ -243,7 +243,7 @@ class Experiment():
         f1_val_scores = []
         all_epoch_times = []
 
-        for n in range(2):
+        for n in range(self.dataset.k_fold.get_n_splits()):
 
             y_train = np.load(self.path+os.sep+str(n)+os.sep+'Y_train.npy', allow_pickle=True)
             y_val = np.load(self.path+os.sep+str(n)+os.sep+'Y_val.npy', allow_pickle=True)
