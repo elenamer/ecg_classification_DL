@@ -84,7 +84,7 @@ class Experiment():
         ## Here choose between evaluation paradigms according to self.eval
         # For now have only one which is obtained with dat.get_crossval_split()
         distrs_splits = []
-        for n in range(self.dataset.k_fold.get_n_splits()):
+        for n in range(self.dataset.n_splits):
             # (look at ptbxl code, basically go through all models for a specific dataset)
             os.makedirs(self.path+os.sep+str(n)+os.sep+"models", exist_ok=True)
             if wandb_flag:
@@ -243,7 +243,7 @@ class Experiment():
         f1_val_scores = []
         all_epoch_times = []
 
-        for n in range(self.dataset.k_fold.get_n_splits()):
+        for n in range(self.dataset.n_splits):
 
             y_train = np.load(self.path+os.sep+str(n)+os.sep+'Y_train.npy', allow_pickle=True)
             y_val = np.load(self.path+os.sep+str(n)+os.sep+'Y_val.npy', allow_pickle=True)

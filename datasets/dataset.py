@@ -24,8 +24,12 @@ class Dataset():
         self.eval = eval
 
         self.classes = self.get_classes()
-        self.k_fold = IterativeStratification(n_splits=10, order=1) # fixed for now, should be defined by evaluation paradigm in the future
-        self.strat_group_k_fold = StratifiedGroupKFold(n_splits=10)
+
+        self.n_splits = 10
+        self.k_fold = IterativeStratification(n_splits=self.n_splits, order=1) # fixed for now, should be defined by evaluation paradigm in the future
+        self.strat_group_k_fold = StratifiedGroupKFold(n_splits=self.n_splits)
+
+        #self.patient_groups = 
 
     '''def get_patientids():
 
