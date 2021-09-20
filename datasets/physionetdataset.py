@@ -155,13 +155,29 @@ class PhysionetDataset(Dataset):
         print(self.patientids)
         print(self.common_path)
 
+        self.patient_groups = self.get_patientgroups()
+
         #self.k_fold_crossval()
         #patientids = [os.path.split(id)[-1] for id in patientids]		
 
     def get_patientids(self):
         with open(self.path+"RECORDS"+choice.upper()) as f:
             return f.read().splitlines()
-    
+
+    def get_patientgroups(self):
+        patientgroups_dict={}
+        with open(self.path+"files-patients-diagnoses.txt") as f:
+            lines = f.read().splitlines()
+        for (ind, line) in enumerate(lines):
+            if line.startswith("patient"):
+                number = line.split(" ")[1]
+                print(number)
+                patientids = lines[ind+1].split(" ")
+                print(patientids)
+                for patient in patientids:
+                    patientgroups_dict[patient] = number
+        return patientgroups_dict
+
     def get_patientids_ds1(self):
         with open(path_to_db+"RECORDS_TEST") as f:
             DS2 = f.read().splitlines()
@@ -250,7 +266,7 @@ class PhysionetDataset(Dataset):
 
     def get_signal(self, path, idx):
         data, metadata = wfdb.rdsamp(path+idx)
-        print(metadata['sig_name'])
+        #print(metadata['sig_name'])
         lead_names = self.lead.split("-")
         if len(lead_names) == 1:
             if lead_names[0] in metadata['sig_name']:
@@ -352,23 +368,34 @@ class PhysionetDataset(Dataset):
         # print(y_val.shape)
         return X_train, y_train, X_val, y_val, X_test, y_test
 
-    def get_crossval_splits(self, X, Y, groups, split=9):
+    def get_overall_patientgroups(self, groups):
+        overall_groups = np.copy(groups)
+        for ind, patient in enumerate(self.patientids):
+            overall_groups[overall_groups==ind] = self.patient_groups[patient]
+        overall_groups = np.array(overall_groups)
+        print(np.unique(overall_groups, return_counts=True)[1])
+        print(np.unique(groups, return_counts=True)[1])
+        return overall_groups
+
+    def get_crossval_splits(self, X, Y, recording_groups, split=9):
         ## this is for interpatient
         
         indices = np.sum(np.array(Y), axis=1) > 0 
         print(X)
         data = np.array(X)[indices]
         labels = np.array(Y[indices])
-        groups = np.array(np.array(groups)[indices])
+        recording_groups = np.array(np.array(recording_groups)[indices])
+        
+        overall_groups = self.get_overall_patientgroups(recording_groups)
 
-        train, test= next(itertools.islice(self.strat_group_k_fold.split(data,labels.argmax(1),groups), split, None))
+        train, test= next(itertools.islice(self.strat_group_k_fold.split(data,labels.argmax(1),overall_groups), split, None))
         X_test, y_test = data[test], labels[test]
         if split != 0:
             val_split = split - 1
         else:
             val_split = self.strat_group_k_fold.n_splits - 1
         # for now always have a different validation set
-        train, val= next(itertools.islice(self.strat_group_k_fold.split(data,labels.argmax(1),groups), val_split, None))
+        train, val= next(itertools.islice(self.strat_group_k_fold.split(data,labels.argmax(1),overall_groups), val_split, None))
         X_val, y_val = data[val], labels[val]
         mask = np.ones(data.shape[0],dtype=bool) # keep only train indices to one
         mask[test]=0
@@ -494,8 +521,8 @@ class PhysionetDataset(Dataset):
             gains.append(int(gain) if int(gain)!=0 else 200)
             bases.append(int(base))
         fid.close()
-        print(signal_ids)
-        print(nsig)
+        #print(signal_ids)
+        #print(nsig)
         return gains, bases, nsig, fs # nsig is chosen lead
 
     def extract_annotation(self, path, idx):
