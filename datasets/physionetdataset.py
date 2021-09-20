@@ -166,16 +166,21 @@ class PhysionetDataset(Dataset):
 
     def get_patientgroups(self):
         patientgroups_dict={}
-        with open(self.path+"files-patients-diagnoses.txt") as f:
-            lines = f.read().splitlines()
-        for (ind, line) in enumerate(lines):
-            if line.startswith("patient"):
-                number = line.split(" ")[1]
-                print(number)
-                patientids = lines[ind+1].split(" ")
-                print(patientids)
-                for patient in patientids:
-                    patientgroups_dict[patient] = number
+        if os.path.exists(self.path+"files-patients-diagnoses.txt"):
+            with open(self.path+"files-patients-diagnoses.txt") as f:
+                lines = f.read().splitlines()
+            for (ind, line) in enumerate(lines):
+                if line.startswith("patient"):
+                    number = line.split(" ")[1]
+                    print(number)
+                    patientids = lines[ind+1].split(" ")
+                    print(patientids)
+                    for patient in patientids:
+                        patientgroups_dict[patient] = number
+        else:
+            for ind, patient in enumerate(self.patientids):
+                patientgroups_dict[patient] = ind
+                
         return patientgroups_dict
 
     def get_patientids_ds1(self):
