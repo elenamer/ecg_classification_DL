@@ -1,6 +1,7 @@
 
 
 
+from processing.segmentepisodesthreshold import SegmentEpisodesThreshold
 from processing.segmentepisodes import SegmentEpisodes
 from warnings import resetwarnings
 from models.model import Classifier
@@ -50,7 +51,7 @@ def evaluate_metrics(confusion_matrix):
 
 wandb_flag = True
 
-MAX_SECONDS = 120
+MAX_SECONDS = 10
 
 class Experiment():
     def __init__(self, dataset, transform, freq, input_seconds, model, task, evaluation_strategy, epochs, aggregate = False, save_model = False, episodes = False):
@@ -69,15 +70,18 @@ class Experiment():
         
         self.classes = self.dataset.class_names
 
-        self.path = "experiments"+os.sep+self.dataset.name+os.sep+self.transform.name+str(self.input_size)+os.sep+model_name+os.sep+self.task+os.sep+self.eval  
+        self.episodes = episodes
+        self.episodestransform = SegmentEpisodes(MAX_SECONDS*self.fs, self.fs)
+        episodes_indicator = self.episodestransform.name if self.episodes else ''
+
+        self.path = "experiments"+os.sep+self.dataset.name+os.sep+episodes_indicator+self.transform.name+str(self.input_size)+os.sep+model_name+os.sep+self.task+os.sep+self.eval  
         os.makedirs(self.path, exist_ok=True)
         self.save = save_model
-        self.name = self.dataset.name+"_"+self.transform.name+str(self.input_size)+"_"+model_name+"_"+self.task+"_"+str(self.fs)
+        self.name = self.dataset.name+"_"+episodes_indicator+self.transform.name+str(self.input_size)+"_"+model_name+"_"+self.task+"_"+str(self.fs)
 
         self.epochs = epochs
         self.aggregate = aggregate
-        self.episodes = episodes
-        self.episodestransform = SegmentEpisodes(MAX_SECONDS*self.fs, self.fs)
+
     
     def run(self):
 
