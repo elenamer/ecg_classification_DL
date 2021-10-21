@@ -259,10 +259,10 @@ class Experiment():
             y_test_pred = np.load(self.path+os.sep+str(n)+os.sep+'Y_test_pred.npy', allow_pickle=True)
 
             epoch_times = np.load(self.path+os.sep+str(n)+os.sep+'epoch_times.npy', allow_pickle=True)
-
-            labels = np.argwhere(y_train.sum(axis=0) > 30 )
-      
-            print(labels)
+            
+            labels_test = np.argwhere(y_test.sum(axis=0) > 0 )
+            labels_val = np.argwhere(y_val.sum(axis=0) > 0 )
+            
             print(np.sum(y_test_pred, axis=0))
             print(np.sum(y_test, axis=0))
 
@@ -275,8 +275,8 @@ class Experiment():
                 y_val_pred_agg = np.load(self.path+os.sep+str(n)+os.sep+'Y_val_pred_agg.npy', allow_pickle=True)
                 y_test_pred_agg = np.load(self.path+os.sep+str(n)+os.sep+'Y_test_pred_agg.npy', allow_pickle=True)
                 
-                auc_test = sklearn.metrics.roc_auc_score(y_test_agg[:,(labels[:,0])], y_test_pred_agg[:,(labels[:,0])], average='macro')
-                auc_val = sklearn.metrics.roc_auc_score(y_val_agg[:,(labels[:,0])], y_val_pred_agg[:,(labels[:,0])], average='macro')
+                auc_test = sklearn.metrics.roc_auc_score(y_test_agg[:,(labels_test[:,0])], y_test_pred_agg[:,(labels_test[:,0])], average='macro')
+                auc_val = sklearn.metrics.roc_auc_score(y_val_agg[:,(labels_val[:,0])], y_val_pred_agg[:,(labels_val[:,0])], average='macro')
 
                 auc_test_scores.append(auc_test)
                 auc_val_scores.append(auc_val)
@@ -289,8 +289,8 @@ class Experiment():
 
             else:
 
-                auc_test = sklearn.metrics.roc_auc_score(y_test[:,(labels[:,0])], y_test_pred[:,(labels[:,0])], average='macro')
-                auc_val = sklearn.metrics.roc_auc_score(y_val[:,(labels[:,0])], y_val_pred[:,(labels[:,0])], average='macro')
+                auc_test = sklearn.metrics.roc_auc_score(y_test[:,(labels_test[:,0])], y_test_pred[:,(labels_test[:,0])], average='macro')
+                auc_val = sklearn.metrics.roc_auc_score(y_val[:,(labels_val[:,0])], y_val_pred[:,(labels_val[:,0])], average='macro')
 
                 auc_test_scores.append(auc_test)
                 auc_val_scores.append(auc_val)
