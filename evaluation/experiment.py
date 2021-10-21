@@ -51,10 +51,8 @@ def evaluate_metrics(confusion_matrix):
 
 wandb_flag = True
 
-MAX_SECONDS = 10
-
 class Experiment():
-    def __init__(self, dataset, transform, freq, input_seconds, model, task, evaluation_strategy, epochs, aggregate = False, save_model = False, episodes = False):
+    def __init__(self, dataset, transform, freq, input_seconds, model, task, evaluation_strategy, epochs, aggregate = False, save_model = False, episodes = False, max_episode_seconds = 10):
         self.fs = freq
         self.eval = evaluation_strategy
         self.dataset = dataset(task = task, fs = self.fs, eval = self.eval)
@@ -71,7 +69,9 @@ class Experiment():
         self.classes = self.dataset.class_names
 
         self.episodes = episodes
-        self.episodestransform = SegmentEpisodes(MAX_SECONDS*self.fs, self.fs)
+        self.episodestransform = SegmentEpisodesThreshold(max_episode_seconds*self.fs, self.fs)
+
+        ## max_episode_seconds is different from input_seconds only when episodes+ sliding window are used in combination
         episodes_indicator = self.episodestransform.name if self.episodes else ''
 
         self.path = "experiments"+os.sep+self.dataset.name+os.sep+episodes_indicator+self.transform.name+str(self.input_size)+os.sep+model_name+os.sep+self.task+os.sep+self.eval  
