@@ -47,23 +47,24 @@ def get_episode_label(labels):
     counts = np.delete(counts, to_drop)
     if counts.size > 0:
         print(values)
-        # if counts.size > 1:
-        #     to_drop = np.where(values == '0')[0]
-        #     values = np.delete(values, to_drop)
-        #     counts = np.delete(counts, to_drop)
-        # chosen_label_index = counts.argmax()
-        # chosen_label = values[chosen_label_index]
-        # print(chosen_label)
-        # # if str(chosen_label) != '0' and str(chosen_label) != '':
-        # #     print(values)
-        # #     print(counts)
+        if counts.size > 1:
+            to_drop = np.where(values == '0')[0]
+            values = np.delete(values, to_drop)
+            counts = np.delete(counts, to_drop)
+        chosen_label_index = counts.argmax()
+        chosen_label = values[chosen_label_index]
+        print(chosen_label)
+        # if str(chosen_label) != '0' and str(chosen_label) != '':
+        #     print(values)
+        #     print(counts)
     else:
         chosen_label = ''
         return [chosen_label]
-    #if counts[chosen_label_index] < 4:
+    # if counts[chosen_label_index] < 4:
     #    return ''
-    #all_labels.append(labels.ep_label.values)
-    #all_labels.append(labels.ep_label.values.argmax(axis=1))
+    all_labels.append(labels.ep_label.values)
+    #all_labels.append(labels.ep_label.values.argmax(axis=1)) # (if we want argmax)
+    # return values # (if we want mlb)
     return values
 
 
