@@ -65,7 +65,7 @@ class PTBXLDataset(Dataset):
         self.num_channels = 12
         self.patientids = self.get_patientids()
 
-        self.freq = 100
+        self.freq = 500
         if fs is not None:
             self.new_freq = fs
         else:
@@ -75,9 +75,9 @@ class PTBXLDataset(Dataset):
         self.index = self.get_index()
 
         self.encoded_labels = self.encode_labels()
-        self.maxsize=2200 # FOr now
+        self.maxsize=22000 # FOr now
         # Load PTB-XL data
-        self.data = [self.get_signal(self.path,id) for id in self.index.filename_lr[:self.maxsize]]
+        self.data = [self.get_signal(self.path,id) for id in self.index.filename_hr[:self.maxsize]]
         #self.classes_dict = initial_classes_dict[classes]
         #print(self.patientids)
             #patientids = [os.path.split(id)[-1] for id in patientids]		
@@ -100,7 +100,7 @@ class PTBXLDataset(Dataset):
         # # load and convert annotation data
         # if self.classes == "rhythm" or self.classes == "form":
         Y = self.labels #pd.read_csv(self.path+os.sep+'ptbxl_database.csv', index_col='ecg_id')
-        Y.set_index("filename_lr", inplace=True, drop=False)
+        Y.set_index("filename_hr", inplace=True, drop=False)
 
         return Y
 
@@ -124,7 +124,7 @@ class PTBXLDataset(Dataset):
         return sig
 
     def get_annotation(self, path, idx):
-        row = self.index[self.index.filename_lr == idx]
+        row = self.index[self.index.filename_hr == idx]
         labls = [self.classes[str(l)] for l in row.scp_codes.values[0].keys() if str(l) in self.classes.keys()] 
         rhytms =[self.classes[str(l)] for l in row.rhythm.values[0] if str(l) in self.classes.keys()] 
         labls.extend(rhytms)
