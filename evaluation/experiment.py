@@ -88,6 +88,21 @@ class Experiment():
         ## Here choose between evaluation paradigms according to self.eval
         # For now have only one which is obtained with dat.get_crossval_split()
         distrs_splits = []
+        if self.eval != "fixed":
+            X, Y = self.dataset.get_data()
+            
+            if self.episodes:
+                X, Y = self.episodestransform.process(X = X, labels = Y)
+                Y = label_binarize(Y, classes=range(len(self.dataset.class_names.values)))
+                if self.eval == "inter":
+                    groups = self.episodestransform.groupmap
+
+            if not self.episodes:
+                ### intrapatient with segment beats doesn't work with aggregation
+                X, Y, idmap = self.transform.process(X = X, labels = Y)
+                if self.eval == "inter":
+                    groups = self.transform.groupmap
+
         for n in range(self.dataset.n_splits):
             # (look at ptbxl code, basically go through all models for a specific dataset)
             os.makedirs(self.path+os.sep+str(n)+os.sep+"models", exist_ok=True)
@@ -107,8 +122,6 @@ class Experiment():
             if self.eval == 'fixed':
                 X_train, Y_train, X_val, Y_val, X_test, Y_test = self.dataset.get_split_interpatient(split=n)
                 
-                self.transform.reset_idmap()
-                
                 if self.episodes:
                     X_test, Y_test = self.episodestransform.process(X = X_test, labels = Y_test)
                     X_val, Y_val = self.episodestransform.process(X = X_val, labels = Y_val)
@@ -116,24 +129,12 @@ class Experiment():
                     Y_test = label_binarize(Y_test, classes=range(len(self.dataset.class_names.values)))
                     Y_val = label_binarize(Y_val, classes=range(len(self.dataset.class_names.values)))
                     Y_train = label_binarize(Y_train, classes=range(len(self.dataset.class_names.values)))
-
+                
                 X_test, Y_test, idmap_test = self.transform.process(X = X_test, labels = Y_test)
                 X_val, Y_val, idmap_val = self.transform.process(X = X_val, labels = Y_val)
                 X_train, Y_train, idmap_train = self.transform.process(X = X_train, labels = Y_train)
 
             elif self.eval=='inter':
-                X, Y = self.dataset.get_data()
-                self.transform.reset_idmap()
-                
-                if self.episodes:
-                    X, Y = self.episodestransform.process(X = X, labels = Y)
-                    groups = self.episodestransform.groupmap
-                    Y = label_binarize(Y, classes=range(len(self.dataset.class_names.values)))
-
-                if not self.episodes:
-                    ### intrapatient with segment beats doesn't work with aggregation
-                    X, Y, idmap = self.transform.process(X = X, labels = Y)
-                    groups = self.transform.groupmap
 
                 X_train, Y_train, X_val, Y_val, X_test, Y_test = self.dataset.get_crossval_splits(X=X, Y=Y, recording_groups=groups, split=n)
 
@@ -143,17 +144,6 @@ class Experiment():
                     X_train, Y_train, idmap_train = self.transform.process(X = X_train, labels = Y_train)
                
             else:
-                X, Y = self.dataset.get_data()
-                self.transform.reset_idmap()
-                
-                if self.episodes:
-                    X, Y = self.episodestransform.process(X = X, labels = Y)
-                    Y = label_binarize(Y, classes=range(len(self.dataset.class_names.values)))
-
-
-                if not self.episodes:
-                    ### intrapatient with segment beats doesn't work with aggregation
-                    X, Y, idmap = self.transform.process(X = X, labels = Y)
 
                 X_train, Y_train, X_val, Y_val, X_test, Y_test = self.dataset.get_crossval_splits_intrapatient(X=X, Y=Y, split=n)
 
