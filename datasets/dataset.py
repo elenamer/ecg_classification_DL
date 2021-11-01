@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from collections import Counter
 from sklearn.preprocessing import StandardScaler, MultiLabelBinarizer
 from skmultilearn.model_selection import IterativeStratification
-from sklearn.model_selection import StratifiedGroupKFold
+from sklearn.model_selection import StratifiedGroupKFold, StratifiedKFold
 
 # modes: test (everything in one), train-val-test, crossval (2 or 3 parts)
 
@@ -26,7 +26,7 @@ class Dataset():
         self.classes = self.get_classes()
 
         self.n_splits = 10
-        self.k_fold = IterativeStratification(n_splits=self.n_splits, order=1) # fixed for now, should be defined by evaluation paradigm in the future
+        self.k_fold =  StratifiedKFold(n_splits=self.n_splits) #IterativeStratification(n_splits=self.n_splits, order=1) 
         self.strat_group_k_fold = StratifiedGroupKFold(n_splits=self.n_splits)
 
         #self.patient_groups = 

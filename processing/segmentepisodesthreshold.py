@@ -36,7 +36,10 @@ def func(row):
 
 def get_episode_label(labels):
     all_labels = []
-    for ind, row in labels.iterrows():
+    #print("labels")
+    #print(labels)
+    for row in labels.itertuples():
+        #print("labl: "+str(ind))
         l = func(row)
         all_labels.extend(l)
     values, counts = np.unique(np.array(all_labels), return_counts = True)
@@ -46,27 +49,26 @@ def get_episode_label(labels):
     values = np.delete(values, to_drop)
     counts = np.delete(counts, to_drop)
     if counts.size > 0:
-        print(values)
+        #print(values)
         if counts.size > 1:
             to_drop = np.where(values == '0')[0]
             values = np.delete(values, to_drop)
             counts = np.delete(counts, to_drop)
         chosen_label_index = counts.argmax()
         chosen_label = values[chosen_label_index]
-        print(chosen_label)
+        #print(chosen_label)
         # if str(chosen_label) != '0' and str(chosen_label) != '':
         #     print(values)
         #     print(counts)
     else:
         chosen_label = ''
-        return [chosen_label]
+    #    return [chosen_label]
     # if counts[chosen_label_index] < 4:
     #    return ''
     all_labels.append(labels.ep_label.values)
     #all_labels.append(labels.ep_label.values.argmax(axis=1)) # (if we want argmax)
     # return values # (if we want mlb)
-    return values
-
+    return chosen_label
 
 
 class SegmentEpisodesThreshold():
@@ -127,7 +129,7 @@ class SegmentEpisodesThreshold():
 
             current_ep = labels.loc[rpeak_ind].ep_label
 
-            print(current_ep)
+            #print(current_ep)
             # if current_ep == '':
             #     print("VERYYY IMPORTANT")
             #print(ind, rpeak_ind)
@@ -165,20 +167,24 @@ class SegmentEpisodesThreshold():
             problematic end ind
             
             '''
-            if np.argmax(labels_orig.index >= window_end) != 0:
-                end_ind = np.argmax(labels_orig.index >= window_end)
-            else:
-                end_ind = len(signal)
 
-
+            end_ind = np.argmax(labels_orig.index >= window_end)
 
             #print("window: "+str(window_start)+"   "+str(window_end))
             #print("index: "+str(start_ind)+"   "+str(end_ind))
+
+            if start_ind == end_ind:
+                continue
+            elif start_ind!=0:
+                end_ind = len(signal)
+            else:
+                continue
             episode_labels=labels.iloc[start_ind:end_ind]
+            #print(episode_labels)
             #print(labels.iloc[start_ind:end_ind])
             label = get_episode_label(episode_labels)
 
-            if label[0] == '':
+            if label == '':
                 continue
             
             #print(label)
@@ -190,10 +196,7 @@ class SegmentEpisodesThreshold():
                 continue
             #data.append(sig)
             data.append(normalize(sig))
-            #print(label)
-            all_labls.extend(label)
-            #print(all_labls)
-            #plt.plot(normalize(sig))
+            all_labls.append(int(label)) 
 
         # print(skipped)
         # print(len(data))
@@ -228,6 +231,7 @@ class SegmentEpisodesThreshold():
                 full_labels = labels
                 break
             beats, labls = self.segment_episodes(choice, sig, labels[ind], 0, -1)
+            print("patient ind"+str(ind))
             full_data.extend(beats)
             full_labels.extend(labls)
             self.groupmap.extend([ind]*len(beats))
@@ -237,18 +241,18 @@ class SegmentEpisodesThreshold():
         for episode in full_data:
             lengths.append(len(episode)/ self.fs)
 
-        ax = sns.histplot(full_labels, stat='probability')
-        ax.set_title("Episode label distribution for "+self.name+" Dataset")
+        #ax = sns.histplot(full_labels, stat='probability')
+        #ax.set_title("Episode label distribution for "+self.name+" Dataset")
         #plt.show()
-        for container in ax.containers:
-            ax.bar_label(container)
-        plt.savefig("./"+self.name+"_ep_distr_mlb.png", dpi=300)
+        #for container in ax.containers:
+        #    ax.bar_label(container)
+        #plt.savefig("./"+self.name+"_ep_distr_mlb.png", dpi=300)
 
         self.idmap = np.arange(len(full_data))
         print("after processing")
         print(len(full_data))
         print(len(full_labels))
         print(full_labels[0]) 
-        plt.plot(full_data[0])
-        plt.show()
+        #plt.plot(full_data[0])
+        #plt.show()
         return full_data, full_labels # or maybe groupmap?

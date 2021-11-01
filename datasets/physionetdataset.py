@@ -421,21 +421,25 @@ class PhysionetDataset(Dataset):
 
     def get_crossval_splits_intrapatient(self, X, Y, split=9):
         ## this is for interpatient
-        
+
         indices = np.sum(np.array(Y), axis=1) > 0 
-        print(X)
+
+        print(np.array(X).shape)
+        print(np.array(Y).shape)
+        print("indices")
+        print(len(indices))
         data = np.array(X)[indices]
         labels = np.array(Y[indices])
 
 
-        train, test= next(itertools.islice(self.k_fold.split(data,labels), split, None))
+        train, test= next(itertools.islice(self.k_fold.split(data,labels.argmax(1)), split, None))
         X_test, y_test = data[test], labels[test]
         if split != 0:
             val_split = split - 1
         else:
             val_split = self.k_fold.n_splits - 1
         # for now always have a different validation set
-        train, val= next(itertools.islice(self.k_fold.split(data,labels), val_split, None))
+        train, val= next(itertools.islice(self.k_fold.split(data,labels.argmax(1)), val_split, None))
         X_val, y_val = data[val], labels[val]
         mask = np.ones(data.shape[0],dtype=bool) # keep only train indices to one
         mask[test]=0

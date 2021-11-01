@@ -13,7 +13,7 @@ class Classifier(tf.keras.Model):
         self.model = model#tf.keras.Model(inputs=inputs, outputs=model.call(inputs))
         out_act = 'sigmoid' # if n_classes == 1 else 'softmax' # change this for multi-label
         self.classifier = tf.keras.layers.Dense(n_classes, out_act)
-        #os.environ["CUDA_VISIBLE_DEVICES"]="1" # second gpu
+        os.environ["CUDA_VISIBLE_DEVICES"]="1" # second gpu
         self.epochs = epochs
         self.path = path
         
@@ -39,15 +39,15 @@ class Classifier(tf.keras.Model):
         time_callback = TimeHistory()
 
         es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
-        #wandb_cb = WandbCallback(save_weights_only=True)
+        wandb_cb = WandbCallback(save_weights_only=True)
 
         # x, y = self.transform.process(X=x,labels=y)
 
         X_val, y_val = validation_data[0], validation_data[1]
-        log_f1 = F1Metric(train=(x, y), validation=(X_val, y_val), path=self.path+os.sep+"models")
-        log_auc = AUCMetric(train=(x, y), validation=(X_val, y_val), path=self.path+os.sep+"models")
+        #log_f1 = F1Metric(train=(x, y), validation=(X_val, y_val), path=self.path+os.sep+"models")
+        #log_auc = AUCMetric(train=(x, y), validation=(X_val, y_val), path=self.path+os.sep+"models")
 
-        super(Classifier, self).fit(x, y, validation_data = (X_val, y_val), callbacks = [es, log_f1, log_auc, time_callback], epochs = self.epochs, batch_size=128)
+        super(Classifier, self).fit(x, y, validation_data = (X_val, y_val), callbacks = [es, time_callback, wandb_cb], epochs = self.epochs, batch_size=128)
         times = time_callback.times
         return times
     # def predict(self, X, y):
