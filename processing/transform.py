@@ -10,6 +10,7 @@ class Transform():
     def __init__(self, input_size):
         self.name = "standard"
         self.input_size = input_size
+        self.idmap = []
     # Add something like normalization by default
 
     def reset_idmap(self):

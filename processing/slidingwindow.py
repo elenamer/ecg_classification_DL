@@ -11,7 +11,7 @@ import numpy as np
 
 class SlidingWindow(Transform):
     def __init__(self, input_size):
-        self.input_size = input_size
+        super().__init__(input_size)
         self.name = "slidingwindow"
 
     def aggregate_labels(self, preds, idmap=None):

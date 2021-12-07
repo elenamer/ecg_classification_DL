@@ -69,7 +69,7 @@ class Experiment():
         self.classes = self.dataset.class_names
 
         self.episodes = episodes
-        self.episodestransform = SegmentEpisodesThreshold(max_episode_seconds*self.fs, self.fs)
+        self.episodestransform = SegmentEpisodesThreshold(int(max_episode_seconds*self.fs), self.fs)
 
         ## max_episode_seconds is different from input_seconds only when episodes+ sliding window are used in combination
         episodes_indicator = self.episodestransform.name if self.episodes else ''

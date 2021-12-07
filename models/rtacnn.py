@@ -68,7 +68,7 @@ class AttentionBranch(tf.keras.layers.Layer):
         x = self.upsamp(x)
 
         x2 = self.conv3(x)
-        
+
         if(K.int_shape(x1)!=K.int_shape(x2)):
             x2 = self.zp(x2)
             x2 = self.crop(x2)
@@ -154,14 +154,13 @@ class RTACNN(tf.keras.layers.Layer):
         x = self.dp1(x) 
         x = self.rta5(x) 
         x = self.maxpool5(x) 
-        x = self.rta6(x) 
-        x = self.maxpool6(x) 
+        #x = self.rta6(x) 
+        #x = self.maxpool6(x) 
         x = self.dp2(x) 
         x = self.flat(x) 
         x = self.dp3(x) 
         x = self.dense3(x) 
         x = self.dp4(x) 
-        x = self.dense4(x)
         return x
 
         
