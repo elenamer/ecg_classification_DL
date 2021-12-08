@@ -1,6 +1,7 @@
 
 
 
+from datasets.physionetdataset import PhysionetDataset
 from processing.segmentepisodesthreshold import SegmentEpisodesThreshold
 from processing.segmentepisodes import SegmentEpisodes
 from warnings import resetwarnings
@@ -88,20 +89,21 @@ class Experiment():
         ## Here choose between evaluation paradigms according to self.eval
         # For now have only one which is obtained with dat.get_crossval_split()
         distrs_splits = []
-        if self.eval != "fixed":
-            X, Y = self.dataset.get_data()
-            
-            if self.episodes:
-                X, Y = self.episodestransform.process(X = X, labels = Y)
-                Y = label_binarize(Y, classes=range(len(self.dataset.class_names.values)))
-                if self.eval == "inter":
-                    groups = self.episodestransform.groupmap
+        if isinstance(self.dataset, PhysionetDataset):
+            if self.eval != "fixed":
+                X, Y = self.dataset.get_data()
+                
+                if self.episodes:
+                    X, Y = self.episodestransform.process(X = X, labels = Y)
+                    Y = label_binarize(Y, classes=range(len(self.dataset.class_names.values)))
+                    if self.eval == "inter":
+                        groups = self.episodestransform.groupmap
 
-            if not self.episodes:
-                ### intrapatient with segment beats doesn't work with aggregation
-                X, Y, idmap = self.transform.process(X = X, labels = Y)
-                if self.eval == "inter":
-                    groups = self.transform.groupmap
+                if not self.episodes:
+                    ### intrapatient with segment beats doesn't work with aggregation
+                    X, Y, idmap = self.transform.process(X = X, labels = Y)
+                    if self.eval == "inter":
+                        groups = self.transform.groupmap
 
         for n in range(self.dataset.n_splits):
             # (look at ptbxl code, basically go through all models for a specific dataset)
@@ -135,8 +137,11 @@ class Experiment():
                 X_train, Y_train, idmap_train = self.transform.process(X = X_train, labels = Y_train)
 
             elif self.eval=='inter':
+                if isinstance(self.dataset, PhysionetDataset):
+                    X_train, Y_train, X_val, Y_val, X_test, Y_test = self.dataset.get_crossval_splits(X=X, Y=Y, recording_groups=groups, split=n)
+                else:
+                    X_train, Y_train, X_val, Y_val, X_test, Y_test = self.dataset.get_crossval_splits(split=n)
 
-                X_train, Y_train, X_val, Y_val, X_test, Y_test = self.dataset.get_crossval_splits(X=X, Y=Y, recording_groups=groups, split=n)
 
                 if self.episodes:
                     X_test, Y_test, idmap_test = self.transform.process(X = X_test, labels = Y_test)
