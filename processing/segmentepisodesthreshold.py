@@ -162,7 +162,6 @@ class SegmentEpisodesThreshold():
             #print(self.input_size / 360)
             start_ind = np.argmax(labels_orig.index >= window_start)
 
-
             '''
             problematic end ind
             
@@ -174,22 +173,28 @@ class SegmentEpisodesThreshold():
             #print("index: "+str(start_ind)+"   "+str(end_ind))
 
             if start_ind == end_ind:
-                continue
-            elif start_ind!=0:
-                end_ind = len(signal)
-            else:
-                continue
+                if start_ind!=0:
+                    end_ind = len(signal)
+                else:
+                    continue
             episode_labels=labels.iloc[start_ind:end_ind]
             #print(episode_labels)
             #print(labels.iloc[start_ind:end_ind])
+            
+            sig = signal[window_start:window_end]
+
             label = get_episode_label(episode_labels)
+
+            print(episode_labels)
+            print(labels_orig.iloc[start_ind])
+            
+            # visualize_episode(sig, window_start, episode_labels, label)
 
             if label == '':
                 continue
             
             #print(label)
 
-            sig = signal[window_start:window_end]
 
             if np.std(sig)==0:
                 print("this happened")
