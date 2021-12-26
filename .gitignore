@@ -3,3 +3,4 @@ experiments*/*
 */__pycache__/*
 data_overviews/*
 wandb/*
+results/
