@@ -26,7 +26,7 @@ class Dataset():
         self.classes = self.get_classes()
 
         self.n_splits = 10
-        self.k_fold =  StratifiedKFold(n_splits=self.n_splits) #IterativeStratification(n_splits=self.n_splits, order=1) 
+        self.k_fold = IterativeStratification(n_splits=self.n_splits, order=1)  #StratifiedKFold(n_splits=self.n_splits) 
         self.strat_group_k_fold = StratifiedGroupKFold(n_splits=self.n_splits)
 
         #self.patient_groups = 

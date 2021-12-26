@@ -141,7 +141,10 @@ class Experiment():
                     X_train, Y_train, X_val, Y_val, X_test, Y_test = self.dataset.get_crossval_splits(X=X, Y=Y, recording_groups=groups, split=n)
                 else:
                     X_train, Y_train, X_val, Y_val, X_test, Y_test = self.dataset.get_crossval_splits(split=n)
-
+                    X_test, Y_test, idmap_test = self.transform.process(X = X_test, labels = Y_test)
+                    X_val, Y_val, idmap_val = self.transform.process(X = X_val, labels = Y_val)
+                    X_train, Y_train, idmap_train = self.transform.process(X = X_train, labels = Y_train)
+                              
 
                 if self.episodes:
                     X_test, Y_test, idmap_test = self.transform.process(X = X_test, labels = Y_test)
@@ -157,13 +160,21 @@ class Experiment():
                     X_val, Y_val, idmap_val = self.transform.process(X = X_val, labels = Y_val)
                     X_train, Y_train, idmap_train = self.transform.process(X = X_train, labels = Y_train)
 
+            X_train = np.asarray(X_train)
+            Y_train = np.asarray(Y_train)
+            X_val = np.asarray(X_val)
+            Y_val = np.asarray(Y_val)
+            X_test = np.asarray(X_test)
+            Y_test = np.asarray(Y_test)
 
             print("after processing")
             print("class distribution:")
             print(Y_train.shape)
             print(Y_train[0].shape)
             print(Y_train.sum(axis=0))
-
+            print(X_train.shape)
+            print(X_val.shape)
+            print(Y_val.shape)
             #['N' '' list([1, 0, 0, 0, 0]) '']
 
             Y_test.dump(self.path+os.sep+str(n)+os.sep+"Y_test.npy") 
@@ -257,7 +268,7 @@ class Experiment():
             
             labels_test = np.argwhere(y_test.sum(axis=0) > 0 )
             labels_val = np.argwhere(y_val.sum(axis=0) > 0 )
-            
+            print(labels_test[:,0])
             print(np.sum(y_test_pred, axis=0))
             print(np.sum(y_test, axis=0))
 
@@ -269,7 +280,8 @@ class Experiment():
 
                 y_val_pred_agg = np.load(self.path+os.sep+str(n)+os.sep+'Y_val_pred_agg.npy', allow_pickle=True)
                 y_test_pred_agg = np.load(self.path+os.sep+str(n)+os.sep+'Y_test_pred_agg.npy', allow_pickle=True)
-                
+                print(y_test_agg[:,(labels_test[:,0])])
+                print(y_test_pred_agg[:,(labels_test[:,0])])
                 auc_test = sklearn.metrics.roc_auc_score(y_test_agg[:,(labels_test[:,0])], y_test_pred_agg[:,(labels_test[:,0])], average='macro')
                 auc_val = sklearn.metrics.roc_auc_score(y_val_agg[:,(labels_val[:,0])], y_val_pred_agg[:,(labels_val[:,0])], average='macro')
 
