@@ -16,6 +16,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.preprocessing import label_binarize
+import gc
 
 def evaluate_metrics(confusion_matrix):
     # https://stackoverflow.com/questions/31324218/scikit-learn-how-to-obtain-true-positive-true-negative-false-positive-and-fal
@@ -177,33 +178,33 @@ class Experiment():
             print(Y_val.shape)
             #['N' '' list([1, 0, 0, 0, 0]) '']
 
-            Y_test.dump(self.path+os.sep+str(n)+os.sep+"Y_test.npy") 
-            Y_val.dump(self.path+os.sep+str(n)+os.sep+"Y_val.npy") 
-            Y_train.dump(self.path+os.sep+str(n)+os.sep+"Y_train.npy") 
+            np.save(self.path+os.sep+str(n)+os.sep+"Y_test.npy",Y_test) 
+            np.save(self.path+os.sep+str(n)+os.sep+"Y_val.npy",Y_val) 
+            np.save(self.path+os.sep+str(n)+os.sep+"Y_train.npy", Y_train) 
 
             times = self.classifier.fit(x=X_train,y=Y_train, validation_data = (X_val, Y_val))
 
             Y_test_pred = self.classifier.predict(X_test)
-            Y_test_pred.dump(self.path+os.sep+str(n)+os.sep+"Y_test_pred.npy") 
+            np.save(self.path+os.sep+str(n)+os.sep+"Y_test_pred.npy", Y_test_pred) 
             Y_val_pred = self.classifier.predict(X_val)
-            Y_val_pred.dump(self.path+os.sep+str(n)+os.sep+"Y_val_pred.npy") 
+            np.save(self.path+os.sep+str(n)+os.sep+"Y_val_pred.npy", Y_val_pred) 
             Y_train_pred = self.classifier.predict(X_train)
-            Y_train_pred.dump(self.path+os.sep+str(n)+os.sep+"Y_train_pred.npy") 
+            np.save(self.path+os.sep+str(n)+os.sep+"Y_train_pred.npy", Y_train_pred) 
 
-            np.array(times).dump(self.path+os.sep+str(n)+os.sep+"epoch_times.npy") 
+            np.save(self.path+os.sep+str(n)+os.sep+"epoch_times.npy", np.array(times)) 
 
             if self.aggregate:
                 Y_train_pred_agg = self.transform.aggregate_labels(Y_train_pred, idmap_train)
-                Y_train_pred_agg.dump(self.path+os.sep+str(n)+os.sep+"Y_train_pred_agg.npy") 
+                np.save(self.path+os.sep+str(n)+os.sep+"Y_train_pred_agg.npy",Y_train_pred_agg) 
                 Y_test_pred_agg = self.transform.aggregate_labels(Y_test_pred, idmap_test)
-                Y_test_pred_agg.dump(self.path+os.sep+str(n)+os.sep+"Y_test_pred_agg.npy") 
+                np.save(self.path+os.sep+str(n)+os.sep+"Y_test_pred_agg.npy", Y_test_pred_agg) 
                 Y_val_pred_agg = self.transform.aggregate_labels(Y_val_pred, idmap_val)
-                Y_val_pred_agg.dump(self.path+os.sep+str(n)+os.sep+"Y_val_pred_agg.npy")     
+                np.save(self.path+os.sep+str(n)+os.sep+"Y_val_pred_agg.npy", Y_val_pred_agg)     
 
 
-                self.transform.aggregate_labels(Y_train, idmap_train).dump(self.path+os.sep+str(n)+os.sep+"Y_train_agg.npy") 
-                self.transform.aggregate_labels(Y_val, idmap_val).dump(self.path+os.sep+str(n)+os.sep+"Y_val_agg.npy") 
-                self.transform.aggregate_labels(Y_test, idmap_test).dump(self.path+os.sep+str(n)+os.sep+"Y_test_agg.npy") 
+                np.save(self.path+os.sep+str(n)+os.sep+"Y_train_agg.npy", self.transform.aggregate_labels(Y_train, idmap_train)) 
+                np.save(self.path+os.sep+str(n)+os.sep+"Y_val_agg.npy", self.transform.aggregate_labels(Y_val, idmap_val)) 
+                np.save(self.path+os.sep+str(n)+os.sep+"Y_test_agg.npy", self.transform.aggregate_labels(Y_test, idmap_test)) 
 
             if self.save:
                 os.makedirs(self.path+os.sep+str(n)+os.sep+"model", exist_ok=True)
@@ -255,12 +256,12 @@ class Experiment():
 
         for n in range(self.dataset.n_splits):
 
-            y_train = np.load(self.path+os.sep+str(n)+os.sep+'Y_train.npy', allow_pickle=True)
+            #y_train = np.load(self.path+os.sep+str(n)+os.sep+'Y_train.npy', allow_pickle=True)
             y_val = np.load(self.path+os.sep+str(n)+os.sep+'Y_val.npy', allow_pickle=True)
             y_test = np.load(self.path+os.sep+str(n)+os.sep+'Y_test.npy', allow_pickle=True)
             
 
-            y_train_pred = np.load(self.path+os.sep+str(n)+os.sep+'Y_train_pred.npy', allow_pickle=True)
+            #y_train_pred = np.load(self.path+os.sep+str(n)+os.sep+'Y_train_pred.npy', allow_pickle=True)
             y_val_pred = np.load(self.path+os.sep+str(n)+os.sep+'Y_val_pred.npy', allow_pickle=True)
             y_test_pred = np.load(self.path+os.sep+str(n)+os.sep+'Y_test_pred.npy', allow_pickle=True)
 
@@ -293,6 +294,10 @@ class Experiment():
 
                 f1_test_scores.append(f1_test)
                 f1_val_scores.append(f1_val)
+                del y_val_agg
+                del y_test_agg
+                del y_val_pred_agg
+                del y_test_pred_agg
 
             else:
 
@@ -308,6 +313,14 @@ class Experiment():
                 f1_test_scores.append(f1_test)
                 f1_val_scores.append(f1_val)
             all_epoch_times.extend(epoch_times)
+
+            del y_val
+            del y_test
+            del y_val_pred
+            del y_test_pred
+            del epoch_times
+            gc.collect()
+
 
         results_dict["auc"] = {"test": { 
             "mean" : np.mean(np.array(auc_test_scores)),
