@@ -117,10 +117,10 @@ class PTBXLDataset(Dataset):
         data, metadata = wfdb.rdsamp(path+idx)
         lead_names = self.lead.split("-")
         if len(lead_names) == 1:
-            sig = data.T[:,leads.index(lead_names[0])]
+            sig = data[:,leads.index(lead_names[0])]
         else:
-            sig = data.T[:,leads.index(lead_names[0])] - data.T[:,leads.index(lead_names[1])]
-        sig = resample(sig, int(sig.shape[0] / self.freq) * self.new_freq)        
+            sig = data[:,leads.index(lead_names[0])] - data[:,leads.index(lead_names[1])]
+        sig = resample(sig, int(sig.shape[0] / self.freq) * self.new_freq)    
         return sig
 
     def get_annotation(self, path, idx):
