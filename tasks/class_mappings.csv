@@ -1,12 +1,12 @@
-,N,RBBB,LBBB,j,e,PAC,J,PVC,VEB,SINUS,SI,AFIB,AFL,SVTA,VT,AVB1,AVB2,AVB3,SBRAD,STACH,BIGU,TRIGU,NOISE,IVB,IVR,EAR,JUNCT,WPW,WAP,AB,aPAC,AT,AVNRT,AVRT,nonAFIB,NDT,NST_,DIG,LNGQT,ABQRS,PRC(S),STD_,VCLVH,QWAVE,LOWT,NT_,LPR,INVT,LVOLT,HVOLT,TAB_,STE_
-mitdb,N,R,L,j,e,"A, S",J,V,E,(N,,(AFIB,(AFL,(SVTA,(VT,,(BII,,(SBR,,(B,(T,,,,,(NOD,,,(AB,a,,,,,,,,,,,,,,,,,,,,,
-incartdb,N,R,L,j,e,"A, S",J,V,E,(N,,(AFIB,(AFL,(SVTA,(VT,,(BII,,(SBR,,(B,(T,,,,,(NOD,(PREX,,(AB,a,,,,,,,,,,,,,,,,,,,,,
-svdb,N,R,L,j,e,"A, S",J,V,E,(N,,(AFIB,(AFL,(SVTA,(VT,,(BII,,(SBR,,(B,(T,,,,,(NOD,,,(AB,a,,,,,,,,,,,,,,,,,,,,,
-afdb,N,R,L,j,e,"A, S",J,V,E,(N,,(AFIB,(AFL,(SVTA,(VT,,(BII,,(SBR,,(B,(T,,,,,(NOD,,,(AB,a,,,,,,,,,,,,,,,,,,,,,
-ltafdb,N,R,L,j,e,"A, S",J,V,E,(N,,(AFIB,(AFL,(SVTA,(VT,,(BII,,(SBR,,(B,(T,,,,,(NOD,,,(AB,a,,,,,,,,,,,,,,,,,,,,,
-savvydb,N,R,L,j,e,"A, S",J,V,E,(N,,(AFIB,(AFL,(SVTA,(VT,,(BII,,(SBR,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-irhythm-test,,,,,,,,,,SINUS,,AFIB,AFL,SVT,VT,,"WENCKEBACH, AVBTYPE2",CHB,,,BIGEMINY,BIGEMINY,NOISE,IVB,IVR,EAR,JUNCTIONAL,,,,,,,,,,,,,,,,,,,,,,,,,
-cpsc2018,"Normal, 1","RBBB, 5","LBBB, 4",,,"PAC, 6",,"PVC, 7",,"Normal, 1",,"AF, 2",,,,"I-AVB, 3",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-arr10000,NONE,RBBB,"LBBB, LBBBB, LFBBB",JEB,,APB,JPT,VPB,,SR,SI,AFIB,AF,SVT,,,"2AVB1, 2AVB2",3AVB,SB,ST,VB,,,,,,,,SAAWR,,,AT,AVNRT,AVRT,,,,,,,,,,,,,,,,,,
-cinc2017,N,,,,,,,,,N,,A,,,,,,,,,,,~,,,,,,,,,,,,O,,,,,,,,,,,,,,,,,
-ptb-xl,NORM,"CRBBB, IRBBB","CLBBB, ILBBB",,,"PAC, SVARR",,PVC,,SR,SARR,AFIB,AFLT,"SVTAC, PSVT",,1AVB,2AVB,3AVB,SBRAD,STACH,BIGU,TRIGU,,,,,,WPW,WAVN,ABI,,,,,,NDT,NST_,DIG,LNGQT,ABQRS,PRC(S),STD_,VCLVH,QWAVE,LOWT,NT_,LPR,INVT,LVOLT,HVOLT,TAB_,STE_
+,N,RBBB,LBBB,j,e,PAC,J,PVC,VEB,SINUS,SI,AFIB,AFL,SVTA,VT,AVB1,AVB2,AVB3,SBRAD,STACH,BIGU,TRIGU,NOISE,IVB,IVR,EAR,JUNCT,WPW,WAP,AB,aPAC,AT,AVNRT,AVRT,nonAFIB,NDT,NST_,DIG,LNGQT,ABQRS,PRC(S),STD_,VCLVH,QWAVE,LOWT,NT_,LPR,INVT,LVOLT,HVOLT,TAB_,STE_,PACE
+mitdb,N,R,L,j,e,"A, S",J,V,E,(N,,(AFIB,(AFL,(SVTA,(VT,,(BII,,(SBR,,(B,(T,,,,,(NOD,,,(AB,a,,,,,,,,,,,,,,,,,,,,,,
+incartdb,N,R,L,j,e,"A, S",J,V,E,(N,,(AFIB,(AFL,(SVTA,(VT,,(BII,,(SBR,,(B,(T,,,,,(NOD,(PREX,,(AB,a,,,,,,,,,,,,,,,,,,,,,,
+svdb,N,R,L,j,e,"A, S",J,V,E,(N,,(AFIB,(AFL,(SVTA,(VT,,(BII,,(SBR,,(B,(T,,,,,(NOD,,,(AB,a,,,,,,,,,,,,,,,,,,,,,,
+afdb,N,R,L,j,e,"A, S",J,V,E,(N,,(AFIB,(AFL,(SVTA,(VT,,(BII,,(SBR,,(B,(T,,,,,(NOD,,,(AB,a,,,,,,,,,,,,,,,,,,,,,,
+ltafdb,N,R,L,j,e,"A, S",J,V,E,(N,,(AFIB,(AFL,(SVTA,(VT,,(BII,,(SBR,,(B,(T,,,,,(NOD,,,(AB,a,,,,,,,,,,,,,,,,,,,,,,
+savvydb,N,R,L,j,e,"A, S",J,V,E,(N,,(AFIB,(AFL,(SVTA,(VT,,(BII,,(SBR,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+irhythm-test,,,,,,,,,,SINUS,,AFIB,AFL,SVT,VT,,"WENCKEBACH, AVBTYPE2",CHB,,,BIGEMINY,BIGEMINY,NOISE,IVB,IVR,EAR,JUNCTIONAL,,,,,,,,,,,,,,,,,,,,,,,,,,
+cpsc2018,"Normal, 1","RBBB, 5","LBBB, 4",,,"PAC, 6",,"PVC, 7",,"Normal, 1",,"AF, 2",,,,"I-AVB, 3",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+arr10000,NONE,RBBB,"LBBB, LBBBB, LFBBB",JEB,,APB,JPT,VPB,,SR,SI,AFIB,AF,SVT,,,"2AVB1, 2AVB2",3AVB,SB,ST,VB,,,,,,,,SAAWR,,,AT,AVNRT,AVRT,,,,,,,,,,,,,,,,,,,
+cinc2017,N,,,,,,,,,N,,A,,,,,,,,,,,~,,,,,,,,,,,,O,,,,,,,,,,,,,,,,,,
+ptb-xl,NORM,"CRBBB, IRBBB","CLBBB, ILBBB",,,"PAC, SVARR",,PVC,,SR,SARRH,AFIB,AFLT,"SVTAC, PSVT",,1AVB,2AVB,3AVB,SBRAD,STACH,BIGU,TRIGU,,,,,,WPW,WAVN,ABI,,,,,,NDT,NST_,DIG,LNGQT,ABQRS,PRC(S),STD_,VCLVH,QWAVE,LOWT,NT_,LPR,INVT,LVOLT,HVOLT,TAB_,STE_,PACE
