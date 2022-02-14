@@ -152,13 +152,25 @@ class PhysionetDataset(Dataset):
         self.path = "./data/"+name+"/"
         self.common_path = "./data/"+name+"/"
         self.patientids = self.get_patientids()
+        self.remove_empty_records()
         print(self.patientids)
         print(self.common_path)
 
         self.patient_groups = self.get_patientgroups()
-
+        print(self.patient_groups)
         #self.k_fold_crossval()
         #patientids = [os.path.split(id)[-1] for id in patientids]		
+
+    def remove_empty_records(self):
+        if os.path.exists(self.path+"notes.txt"):
+            temp = self.patientids
+            with open(self.path+"notes.txt") as f:
+                lines = f.read().splitlines()
+            for line in lines:
+                words = line.split("\t")
+                if words[1] == "Signals unavailable":
+                    temp.remove(words[0])
+            self.patientids = temp
 
     def get_patientids(self):
         with open(self.path+"RECORDS"+choice.upper()) as f:
@@ -295,8 +307,6 @@ class PhysionetDataset(Dataset):
         keep it like this for now, but it's a problem that get_annotation returns different things than in other datasets
         
         '''
-        print(ann.symbol)
-        print([l[:-1] for l in ann.aux_note])
         encoded_index = self.encode_labels(ann)
         return encoded_index
 
@@ -378,6 +388,7 @@ class PhysionetDataset(Dataset):
         for ind, patient in enumerate(self.patientids):
             overall_groups[overall_groups==ind] = self.patient_groups[patient]
         overall_groups = np.array(overall_groups)
+        print("the following should be the same")
         print(np.unique(overall_groups, return_counts=True)[1])
         print(np.unique(groups, return_counts=True)[1])
         return overall_groups
@@ -386,15 +397,16 @@ class PhysionetDataset(Dataset):
         ## this is for interpatient
         
         indices = np.sum(np.array(Y), axis=1) > 0 
-        print(X)
+        #print(X)
         data = np.array(X)[indices]
         labels = np.array(Y[indices])
         recording_groups = np.array(np.array(recording_groups)[indices])
-        
         overall_groups = self.get_overall_patientgroups(recording_groups)
 
         train, test= next(itertools.islice(self.strat_group_k_fold.split(data,labels.argmax(1),overall_groups), split, None))
         X_test, y_test = data[test], labels[test]
+        print(train.shape)
+        print(test.shape)
         if split != 0:
             val_split = split - 1
         else:
@@ -406,7 +418,7 @@ class PhysionetDataset(Dataset):
         mask[test]=0
         mask[val]=0
         X_train, y_train = data[mask], labels[mask]
-
+        print(X_train.shape)
         print(X_test.shape)
         print(X_val.shape)
 
