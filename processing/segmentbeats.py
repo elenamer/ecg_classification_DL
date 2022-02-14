@@ -2,7 +2,8 @@
 
 from processing.transform import Transform
 import numpy as np
-
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 def normalize(data):
     data = np.nan_to_num(data)  # removing NaNs and Infs
@@ -101,6 +102,14 @@ class SegmentBeats(Transform):
             #print(label)
             all_labls.append(label["labels_mlb"])
 
+
+            # uncomment for beats visualization
+
+            # fig, ax = plt.subplots()               
+            # ax.plot(normalize(sig))
+            # ax.annotate(np.array(label["labels_mlb"]).argmax(0), xy=(N_SAMPLES_BEFORE_R_static, sig[N_SAMPLES_BEFORE_R_static]), xycoords='data')
+            # plt.show()
+
         # print(skipped)
         # print(len(data))
         # print(len(all_labls))
@@ -141,4 +150,11 @@ class SegmentBeats(Transform):
         print("after processing")
         print(full_data.shape)
         print(full_labels.shape)
+        ax = sns.histplot(full_labels.argmax(axis=1), stat='probability')
+        ax.set_title("Episode label distribution for "+self.name+" Dataset")
+        #plt.show()
+        for container in ax.containers:
+            ax.bar_label(container)
+        plt.savefig("./"+self.name+"_ep_distr.png", dpi=300)
+
         return full_data, full_labels, self.idmap # or maybe groupmap?

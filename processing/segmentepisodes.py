@@ -1,9 +1,3 @@
-'''
-
-Label aggregation function taken from:
-https://github.com/helme/ecg_ptbxl_benchmarking/blob/bed65591f0e530aa6a9cb4a4681feb49c397bf02/code/models/timeseries_utils.py#L534
-
-'''
 
 import numpy as np
 from numpy.core.numerictypes import issubdtype
@@ -27,23 +21,6 @@ class SegmentEpisodes():
         self.input_size = input_size
         self.name = "segmentepisodes"
         self.fs = fs
-
-    def aggregate_labels(self, preds, idmap=None):
-        '''
-        needs to ba called right after process, meant to be used only in predict function
-        '''
-        aggregate_fn = np.mean
-        print(idmap)
-        if idmap is not None:
-            print("aggregating predictions...")
-            preds_aggregated = []
-            targs_aggregated = []
-            for i in np.unique(idmap):
-                preds_local = preds[np.where(idmap==i)[0]]
-                preds_aggregated.append(aggregate_fn(preds_local,axis=0))
-            return np.array(preds_aggregated)
-        else:
-            return np.array(preds)
 
     def segment_episodes(self, choice, signal, labels_orig, start_minute, end_minute):
         # here start minute is basically start sample

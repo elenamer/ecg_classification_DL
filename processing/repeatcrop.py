@@ -10,14 +10,11 @@ class RepeatCrop(Transform):
     def __init__(self, input_size):
         self.name = "repeatcrop"
         self.input_size = input_size
+        self.idmap = []
     # Add something like normalization by default
 
     def reset_idmap(self):
         self.idmap = []
-
-    def aggregate_labels(self, preds):
-        return preds
-
 
     def process(self, X, labels=None):
         n = self.input_size
@@ -61,9 +58,3 @@ class RepeatCrop(Transform):
         print(new_labels.shape)
         return new_data, new_labels, self.idmap
 
-
-    # def call(input signals/patient ids):
-    #     maybe cropping
-    #     maybe padding
-    #     maaaaybe do label encoding here?
-    #     return segmented beats/windows
