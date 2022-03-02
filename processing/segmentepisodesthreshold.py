@@ -19,13 +19,8 @@ def func(row):
     labls = []
     labls.append(row.ep_label)
     if sum(row.labels_mlb) != 0:
-        #print(row.labels_mlb)
         l = np.array(row.labels_mlb).argmax()
-        #print(lls)
-        #print(l)
         labls.append(l)
-    #print(labls)
-    #print(labls)
     return labls
 
 def get_episode_label(labels, end_index):
@@ -85,7 +80,7 @@ class SegmentEpisodesThreshold():
     def segment_episodes(self, choice, signal, labels_orig, start_minute, end_minute):
         '''
         
-        Main idea: have realistic windows. for real. not ''edited'' according to class in any way.
+        Main idea: have realistic windows. not ''edited'' according to class in any way.
         
         '''
         
@@ -100,33 +95,18 @@ class SegmentEpisodesThreshold():
         else:
             end_sample = end_minute #int(end_minute * fs * 60)
 
-        # print("Start index:")
-        # print(start_ind)
-        # print("End index:")
-        # print(end_ind)
-        #print(labels)
         data=[]
         all_labls = []
         labels = pd.DataFrame(labels_orig)
 
         indices = np.where(np.array(labels.orig_label) == '+')[0]
-        #print(labels.index[indices])
-
 
         for ind, rpeak_ind in enumerate(labels.index[indices]):
 
             current_ep = labels.loc[rpeak_ind].ep_label
-
-            #print(current_ep)
-            # if current_ep == '':
-            #     print("VERYYY IMPORTANT")
-            #print(ind, rpeak_ind)
             rPeak_start = rpeak_ind
             
             if len(indices) > ind+1:
-                # print("END DEBUG:")
-                # print(ind+1)
-                # print(labels.index[indices[ind+1]])
                 rPeak_end = labels.index[indices[ind+1]]
             else:
                 rPeak_end = len(signal) - 1
@@ -136,18 +116,10 @@ class SegmentEpisodesThreshold():
 
                 if label.ep_label == '':
                     label.ep_label = current_ep
-            #if current_ep == '':
-                #print(labels.loc[rPeak_start:rPeak_end])
-
-            #print(labels.loc[rPeak_start:rPeak_end])
-            #print(label)
-
-        #input()
 
         for window_start in range(start_sample, end_sample, self.input_size):
             
             window_end = window_start+self.input_size
-            #print(self.input_size / 360)
             start_ind = np.argmax(labels_orig.index >= window_start)
 
             '''
@@ -166,26 +138,11 @@ class SegmentEpisodesThreshold():
                 else:
                     temp_arr=labels_orig.index <= window_start
                     start_ind = len(labels_orig.index) - np.argmax(temp_arr[::-1]) - 1
-                    # print("in if")
-                    # print(labels_orig.index <= window_start)
-                    # print(labels_orig.index)
-                    # print(window_start)
-                    # print(start_ind)
                     episode_labels = labels.iloc[start_ind:start_ind+1].copy(deep=True)
                     episode_labels['ind'] = window_start
                     episode_labels = episode_labels.set_index('ind')
-                    #episode_labels.reindex([window_start], copy=False)
-                    # print(episode_labels)
-                    # print(episode_labels.index)
-                    #continue
             else:
                 episode_labels=labels.iloc[start_ind:end_ind]
-
-                '''
-
-                    VeRY important, look into it
-
-                '''
 
                 # if start_ind!=0:
                 #     end_ind = len(signal) # ova e ako nema vekje labels? ne sum sigurna bas koja uloga ja ima
@@ -198,18 +155,12 @@ class SegmentEpisodesThreshold():
             
             sig = signal[window_start:window_end]
 
-            #print("before get episode label")
             label = get_episode_label(episode_labels, window_end)
-
-            #print("after get episode label")
-            #print(labels_orig.iloc[start_ind])
-            
 
             # plt.plot(sig)
             # plt.suptitle("blabla"+str(label)+"blabla")
             # #plt.suptitle(str(episode_labels))
             # plt.show()
-            #visualize_episode(sig, window_start, episode_labels, label)
 
             if label == '':
                 continue
@@ -224,26 +175,17 @@ class SegmentEpisodesThreshold():
             data.append(normalize(sig))
             all_labls.append(int(label)) 
 
-        # print(skipped)
-        # print(len(data))
-        # print(len(all_labls))
-        # print(len(data[0]))
-        # print(all_labls)
-        # print("All labels")
 
         return data, all_labls
 
     def process(self, X, labels=None):
-        # input size is the length of a beat in samples
-        # labels is encoded index basically
-        # ORRR index + either beats_mlb or rhythms_mlb
-
+        # input size is the length of a beat/episode in samples
+        # labels is encoded index
 
         # Basically: get all recordings as X (1 row = 1 30 minute signal)
-        # Additional argument: lables but in another format
-        # Idea: something like R peak locations as additional argument?
-        # Return segmented beats, beat-by-beat labels
-        # additional arguments needed: such as frequency?(maybe taken from above and implicitly included in input_size), beat length, type of segmentation?
+        # Additional argument: lables but in another format, with R peak locations as index
+        # Return segmented episodes, with episode-level labels
+
         full_data = []
         full_labels = []
         print(labels)
@@ -267,6 +209,8 @@ class SegmentEpisodesThreshold():
         for episode in full_data:
             lengths.append(len(episode)/ self.fs)
 
+        # uncommnet for ep label distribution
+
         #ax = sns.histplot(full_labels, stat='probability')
         #ax.set_title("Episode label distribution for "+self.name+" Dataset")
         #plt.show()
@@ -279,6 +223,4 @@ class SegmentEpisodesThreshold():
         print(len(full_data))
         print(len(full_labels))
         print(full_labels[0]) 
-        #plt.plot(full_data[0])
-        #plt.show()
         return full_data, full_labels # or maybe groupmap?

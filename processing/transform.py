@@ -26,7 +26,7 @@ class Transform():
 
     def aggregate_labels(self, preds, idmap=None):
         '''
-        needs to ba called right after process, meant to be used only in predict function
+        needs to be called right after process, meant to be used only in predict function
         '''
         aggregate_fn = np.mean
         print(idmap)
@@ -51,10 +51,3 @@ class Transform():
         new_labels = np.array(labels)
         print(new_labels.shape)
         return new_data, new_labels, self.idmap
-
-
-    # def call(input signals/patient ids):
-    #     maybe cropping
-    #     maybe padding
-    #     maaaaybe do label encoding here?
-    #     return segmented beats/windows

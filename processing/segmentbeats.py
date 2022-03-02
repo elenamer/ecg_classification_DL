@@ -41,7 +41,7 @@ class SegmentBeats(Transform):
         N_SAMPLES_BEFORE_R_static=int(beat_len/2)
         N_SAMPLES_AFTER_R_static=int(beat_len/2)
 
-        # ? I don't know for now
+        # I don't know for now
         # N_SAMPLES_BEFORE_R_dynamic=int(fs/4.5)
         print(labels.index)
 
@@ -57,23 +57,15 @@ class SegmentBeats(Transform):
 
         skipped=0
         next_ind=start_ind
-        # print("Start index:")
-        # print(start_ind)
-        # print("End index:")
-        # print(end_ind)
-        #print(labels)
+
         data=[]
         all_labls = []
 
         for ind in labels.index[start_ind:end_ind]:
             rPeak = ind
-            #print(labels.loc[ind])
             label=labels.loc[ind]
             #print(label)
             next_ind+=1
-
-            #print(label)
-            #print(rPeak)
 
             if choice=="static":
                 if rPeak-N_SAMPLES_BEFORE_R_static <0 or rPeak+N_SAMPLES_AFTER_R_static>len(signal):
@@ -96,10 +88,7 @@ class SegmentBeats(Transform):
             if np.std(sig)==0:
                 print("this happened")
                 continue
-            #data.append(sig)
             data.append(normalize(sig))
-            #print("Label")
-            #print(label)
             all_labls.append(label["labels_mlb"])
 
 
@@ -110,25 +99,16 @@ class SegmentBeats(Transform):
             # ax.annotate(np.array(label["labels_mlb"]).argmax(0), xy=(N_SAMPLES_BEFORE_R_static, sig[N_SAMPLES_BEFORE_R_static]), xycoords='data')
             # plt.show()
 
-        # print(skipped)
-        # print(len(data))
-        # print(len(all_labls))
-        # print(len(data[0]))
-        # print(all_labls)
-        # print("All labels")
         return data, all_labls
 
     def process(self, X, labels=None, window = False):
         # input size is the length of a beat in samples
-        # labels is encoded index basically
-        # ORRR index + either beats_mlb or rhythms_mlb
-
+        # labels is encoded index 
 
         # Basically: get all recordings as X (1 row = 1 30 minute signal)
         # Additional argument: lables but in another format
         # Idea: something like R peak locations as additional argument?
         # Return segmented beats, beat-by-beat labels
-        # additional arguments needed: such as frequency?(maybe taken from above and implicitly included in input_size), beat length, type of segmentation?
         full_data = []
         full_labels = []
         choice = "static"
@@ -144,17 +124,18 @@ class SegmentBeats(Transform):
             full_data.extend(beats)
             full_labels.extend(labls)
             self.groupmap.extend([ind]*len(beats))
-            #print(full_labels)
         full_data, full_labels, _ = super(SegmentBeats, self).process(full_data, full_labels)
         self.idmap = np.arange(full_data.shape[0])
         print("after processing")
         print(full_data.shape)
         print(full_labels.shape)
-        ax = sns.histplot(full_labels.argmax(axis=1), stat='probability')
-        ax.set_title("Episode label distribution for "+self.name+" Dataset")
-        #plt.show()
-        for container in ax.containers:
-            ax.bar_label(container)
-        plt.savefig("./"+self.name+"_ep_distr.png", dpi=300)
 
-        return full_data, full_labels, self.idmap # or maybe groupmap?
+        # uncomment for beat label distribution
+
+        # ax = sns.histplot(full_labels.argmax(axis=1), stat='probability')
+        # ax.set_title("Episode label distribution for "+self.name+" Dataset")
+        # for container in ax.containers:
+        #     ax.bar_label(container)
+        # plt.savefig("./"+self.name+"_ep_distr.png", dpi=300)
+
+        return full_data, full_labels, self.idmap 

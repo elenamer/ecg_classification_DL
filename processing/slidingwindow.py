@@ -32,19 +32,17 @@ class SlidingWindow(Transform):
             else:
                 windows = sig[step*np.arange(nrows)[:,None] + np.arange(self.input_size)]
             #print(windows.shape)
-            #print(windows)
 
             new_data.extend(windows.tolist())
             if labels is not None:
                 new_labels.extend([labels[ind]] * nrows)
             idmap.extend([ind] * nrows)
         self.groupmap = idmap
-        #print(idmap)
         
         if labels is None:
             new_data = super(SlidingWindow, self).process(new_data)
             return new_data, idmap
-            # just crop/pad if needed
+            # just crop/pad if needed in base class
             # convert to numpy array
 
         new_data, new_labels, t = super(SlidingWindow, self).process(new_data, new_labels)
