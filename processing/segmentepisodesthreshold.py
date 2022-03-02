@@ -28,32 +28,43 @@ def func(row):
     #print(labls)
     return labls
 
-def get_episode_label(labels):
+def get_episode_label(labels, end_index):
     all_labels = []
     #print("labels")
     #print(labels)
+
+    cnts = {}
+    next_ind = 1
     for row in labels.itertuples():
-        #print("labl: "+str(ind))
+        current = row.Index # current sample
+        try:
+            next = labels.iloc[next_ind].Index # next sample
+        except:
+            next = end_index
+        current_length = next-current
         l = func(row)
         all_labels.extend(l)
+        for label_ind in l:
+            if label_ind in cnts.keys():
+                cnts[label_ind] += current_length
+            else:
+                cnts[label_ind] = current_length
+        next_ind+=1
+    temp = dict(sorted(cnts.items(), key=lambda item: item[1]))
+    values = list(temp.keys())
+    counts = [temp[k] for k in temp.keys()]
+
     values, counts = np.unique(np.array(all_labels), return_counts = True)
-    to_drop = np.where(values == '')[0]
-    #print(values)
-    #print(counts)
+    to_drop = np.where(np.array(values) == '')[0]
     values = np.delete(values, to_drop)
     counts = np.delete(counts, to_drop)
     if counts.size > 0:
-        #print(values)
         if counts.size > 1:
             to_drop = np.where(values == '0')[0]
             values = np.delete(values, to_drop)
             counts = np.delete(counts, to_drop)
         chosen_label_index = counts.argmax()
         chosen_label = values[chosen_label_index]
-        #print(chosen_label)
-        # if str(chosen_label) != '0' and str(chosen_label) != '':
-        #     print(values)
-        #     print(counts)
     else:
         chosen_label = ''
     #    return [chosen_label]
@@ -146,26 +157,59 @@ class SegmentEpisodesThreshold():
 
             end_ind = np.argmax(labels_orig.index >= window_end)
 
-            #print("window: "+str(window_start)+"   "+str(window_end))
-            #print("index: "+str(start_ind)+"   "+str(end_ind))
+            # print("window: "+str(window_start)+"   "+str(window_end))
+            # print("index: "+str(start_ind)+"   "+str(end_ind))
 
             if start_ind == end_ind:
-                if start_ind!=0:
-                    end_ind = len(signal)
-                else:
+                if start_ind==0:
                     continue
-            episode_labels=labels.iloc[start_ind:end_ind]
+                else:
+                    temp_arr=labels_orig.index <= window_start
+                    start_ind = len(labels_orig.index) - np.argmax(temp_arr[::-1]) - 1
+                    # print("in if")
+                    # print(labels_orig.index <= window_start)
+                    # print(labels_orig.index)
+                    # print(window_start)
+                    # print(start_ind)
+                    episode_labels = labels.iloc[start_ind:start_ind+1].copy(deep=True)
+                    episode_labels['ind'] = window_start
+                    episode_labels = episode_labels.set_index('ind')
+                    #episode_labels.reindex([window_start], copy=False)
+                    # print(episode_labels)
+                    # print(episode_labels.index)
+                    #continue
+            else:
+                episode_labels=labels.iloc[start_ind:end_ind]
+
+                '''
+
+                    VeRY important, look into it
+
+                '''
+
+                # if start_ind!=0:
+                #     end_ind = len(signal) # ova e ako nema vekje labels? ne sum sigurna bas koja uloga ja ima
+                #     # kako i da e, vo ovoj slucaj na rhythm na afdb ne raboti
+                # else:
+                #     continue
+            #episode_labels=labels.iloc[start_ind:end_ind]
             #print(episode_labels)
             #print(labels.iloc[start_ind:end_ind])
             
             sig = signal[window_start:window_end]
 
-            label = get_episode_label(episode_labels)
+            #print("before get episode label")
+            label = get_episode_label(episode_labels, window_end)
 
-            print(episode_labels)
-            print(labels_orig.iloc[start_ind])
+            #print("after get episode label")
+            #print(labels_orig.iloc[start_ind])
             
-            # visualize_episode(sig, window_start, episode_labels, label)
+
+            # plt.plot(sig)
+            # plt.suptitle("blabla"+str(label)+"blabla")
+            # #plt.suptitle(str(episode_labels))
+            # plt.show()
+            #visualize_episode(sig, window_start, episode_labels, label)
 
             if label == '':
                 continue
@@ -212,7 +256,7 @@ class SegmentEpisodesThreshold():
                 full_data = X
                 full_labels = labels
                 break
-            beats, labls = self.segment_episodes(choice, sig, labels[ind], 0, 100000)
+            beats, labls = self.segment_episodes(choice, sig, labels[ind], 0, -1)
             print("patient ind"+str(ind))
             full_data.extend(beats)
             full_labels.extend(labls)
