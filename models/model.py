@@ -11,9 +11,9 @@ class Classifier(tf.keras.Model):
         self.learning_rate=learning_rate
         self.input_size = input_size
         self.model = model#tf.keras.Model(inputs=inputs, outputs=model.call(inputs))
-        out_act = 'sigmoid' # if n_classes == 1 else 'softmax' # change this for multi-label
-        self.classifier = tf.keras.layers.Dense(n_classes, out_act)
-        os.environ["CUDA_VISIBLE_DEVICES"]="1" # second gpu
+        out_act = 'sigmoid' if n_classes == 1 else 'softmax' # change this for multi-label
+        self.classifier = tf.keras.layers.Dense(n_classes if n_classes>2 else 1, out_act)
+        #os.environ["CUDA_VISIBLE_DEVICES"]="1" # second gpu
         self.epochs = epochs
         self.path = path
         
@@ -38,7 +38,7 @@ class Classifier(tf.keras.Model):
     def fit(self, x, y, validation_data):
         time_callback = TimeHistory()
 
-        es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+        es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=15, restore_best_weights=True)
         wandb_cb = WandbCallback(save_weights_only=True)
 
         # x, y = self.transform.process(X=x,labels=y)
