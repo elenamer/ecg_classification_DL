@@ -7,7 +7,7 @@ scikit_multilearn==0.2.0
 tensorflow==2.5.3
 keras_nightly==2.5.0.dev2021032900
 numpy==1.21.0
-matplotlib==3.3.4
+matplotlib==3.4
 keras==2.4.3
 scikit_learn==1.0.2
 wandb==0.12.7
