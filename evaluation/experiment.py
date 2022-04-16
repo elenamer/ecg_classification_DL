@@ -93,10 +93,15 @@ class Experiment():
         if isinstance(self.dataset, PhysionetDataset):
             if self.eval != "fixed":
                 X, Y = self.dataset.get_data()
-                
+
                 if self.episodes:
                     X, Y = self.episodestransform.process(X = X, labels = Y)
+                    print(Y)
                     Y = label_binarize(Y, classes=range(len(self.dataset.class_names.values)))
+                    if len(self.dataset.class_names.values) == 2:
+                        Y = np.array([[0 if item[0] else 1,item[0]] for item in Y])
+                    print("after binarizer")
+                    print(Y)
                     if self.eval == "inter":
                         groups = self.episodestransform.groupmap
 
@@ -161,28 +166,40 @@ class Experiment():
                     X_val, Y_val, idmap_val = self.transform.process(X = X_val, labels = Y_val)
                     X_train, Y_train, idmap_train = self.transform.process(X = X_train, labels = Y_train)
 
-            X_train = np.asarray(X_train)
-            Y_train = np.asarray(Y_train)
-            X_val = np.asarray(X_val)
-            Y_val = np.asarray(Y_val)
-            X_test = np.asarray(X_test)
-            Y_test = np.asarray(Y_test)
-
+            X_train = np.asarray(X_train, dtype=np.float16)
+            Y_train = np.asarray(Y_train, dtype=np.int8)
+            X_val = np.asarray(X_val, dtype=np.float16)
+            Y_val = np.asarray(Y_val, dtype=np.int8)
+            X_test = np.asarray(X_test, dtype=np.float16)
+            Y_test = np.asarray(Y_test, dtype=np.int8)
+            if Y_test.shape[1] == 2:
+                Y_train_input = np.array([0 if item[0] else 1 for item in Y_train])
+                Y_test_input = np.array([0 if item[0] else 1 for item in Y_test])
+                Y_val_input = np.array([0 if item[0] else 1 for item in Y_val])
+            else:
+                Y_train_input = Y_train
+                Y_test_input = Y_test
+                Y_val_input = Y_val
             print("after processing")
             print("class distribution:")
             print(Y_train.shape)
             print(Y_train[0].shape)
             print(Y_train.sum(axis=0))
+            print(Y_test.sum(axis=0))
+            print(Y_val.sum(axis=0))
             print(X_train.shape)
             print(X_val.shape)
             print(Y_val.shape)
+            print(X_train.dtype)
+            print(Y_train.dtype)
+            print(X_test.dtype)
             #['N' '' list([1, 0, 0, 0, 0]) '']
 
             np.save(self.path+os.sep+str(n)+os.sep+"Y_test.npy",Y_test) 
             np.save(self.path+os.sep+str(n)+os.sep+"Y_val.npy",Y_val) 
             np.save(self.path+os.sep+str(n)+os.sep+"Y_train.npy", Y_train) 
 
-            times = self.classifier.fit(x=X_train,y=Y_train, validation_data = (X_val, Y_val))
+            times = self.classifier.fit(x=X_train,y=Y_train_input, validation_data = (X_val, Y_val_input))
 
             Y_test_pred = self.classifier.predict(X_test)
             np.save(self.path+os.sep+str(n)+os.sep+"Y_test_pred.npy", Y_test_pred) 
