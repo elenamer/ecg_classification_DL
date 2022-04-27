@@ -123,7 +123,7 @@ class ResNet(tf.keras.layers.Layer):
         self.block_nums = blocks
         self.kernel_size = kernel_size
         self.dropout = dropout
-        self.loss = 'binary_crossentropy'
+        self.loss = 'categorical_crossentropy'
         self.model_name = "resnet"
 
     def build(self, input_shape):

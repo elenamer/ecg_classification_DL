@@ -132,7 +132,7 @@ class CPSCWinnerNet(tf.keras.layers.Layer):
         self.model_name = "cpscwinner"
         self.num_blocks = 5
         self.dropout = 0.1
-        self.loss = 'binary_crossentropy'
+        self.loss = 'categorical_crossentropy'
 
     def build(self, input_shape):
         self.conv1 = Convolution1D(12, 3, padding='same')

@@ -26,7 +26,7 @@ class Dataset():
         self.classes = self.get_classes()
 
         self.n_splits = 10
-        self.k_fold = IterativeStratification(n_splits=self.n_splits, order=1)  #StratifiedKFold(n_splits=self.n_splits) 
+        self.k_fold = StratifiedKFold(n_splits=self.n_splits) #IterativeStratification(n_splits=self.n_splits, order=1) 
         self.strat_group_k_fold = StratifiedGroupKFold(n_splits=self.n_splits)
 
         #self.patient_groups = 
@@ -163,14 +163,13 @@ class Dataset():
                 list_classes = None
 
         results_df = self.get_class_distributions(list_classes)
-
         classes = pd.DataFrame(np.zeros((1, len(self.class_names))),columns=[str(i) for i in range(len(self.class_names))]) #results_df_lab.loc['all',:] 
         print(self.classes)
         for key in self.classes.keys():
             print(key)
             print(self.classes[str(key)])
             if self.classes[str(key)] in results_df.index:
-                classes[[str(self.classes[str(key)])]]+=results_df.loc[int(self.classes[str(key)])]
+                classes[[str(self.classes[str(key)])]]=results_df.loc[int(self.classes[str(key)])]
 
 
         print(classes)

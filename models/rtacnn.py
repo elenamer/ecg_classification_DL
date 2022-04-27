@@ -55,7 +55,7 @@ class AttentionBranch(tf.keras.layers.Layer):
         self.zp = tf.keras.layers.ZeroPadding1D(1)
         self.crop = tf.keras.layers.Cropping1D((1,0))
         self.conv4 = ConvBlock(self.nb_filter, self.kernel_size)
-        self.conv_layer = tf.keras.layers.Conv1D(self.nb_filter, 1, padding='same')
+        self.conv_layer = tf.keras.layers.Conv1D(self.nb_filter, 1, padding='same') # this here is temporal attention
         self.bn = tf.keras.layers.BatchNormalization()
         self.sigmoid = tf.keras.layers.Activation('sigmoid')
         super().build(input_shape)
