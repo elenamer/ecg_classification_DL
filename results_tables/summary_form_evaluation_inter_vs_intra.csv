@@ -1,0 +1,6 @@
+,MIT-BIH-AR,MIT-BIH-AR,MIT-BIH-SV, MIT-BIH-SV,INCART, INCART
+Model,intra-patient,inter-patient,intra-patient,inter-patient,intra-patient,inter-patient
+CNN,0.955,0.4901,0.9294,0.7097,0.9676,0.5773
+ResNet,0.9647,0.5067,0.9397,0.6719,0.9649,0.5693
+GRUAttNet,0.9626,0.5605,0.7716,0.7455,0.9735,0.6636
+RTA-CNN,0.9524,0.4779,0.9352,0.7523,0.9531,0.5796
