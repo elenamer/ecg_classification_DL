@@ -13,10 +13,13 @@ These results were obtained with cross-validation. From these numbers, we can ob
 
 To give a more comprehensive overview of arrhythmia classification, we provide classification scores on the **train, validation and test sets**. This includes **per-class metrics (F1 and AUC)**, as well as average scores over all classes (macro average).
 
-### Folowing are the files related to each setting
+### Folowing are the files for each setting
 
 Form classification results on beat-level datasets: *summary_form_beatlevel.csv*
+
 Form classification results on recording datasets: *summary_form_recordinglevel.csv*
+
 Rhythm classification results on beat-level datasets: *summary_rhythm_beatlevel.csv*
+
 Rhythm classification results on recording datasets: *summary_rhythm_recordinglevel.csv*
 
