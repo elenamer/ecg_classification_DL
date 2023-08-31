@@ -1,5 +1,6 @@
 root="../data"
 
+# download datasets from Physionet: MIT-BIH Arrhythmia, MIT-BIH Supraventricular Arrhythmia, MIT-BIH Atrial Fibrillation, INCART and Long-Term Atrial Fibrillation
 
 for db in 'mitdb' 'svdb' 'afdb' 'ltafdb' 'incartdb';
 do
@@ -8,13 +9,13 @@ mkdir "${root}/${db}"
 mv "${root}/physionet.org/files/${db}/1.0.0"/* "${root}/${db}"
 done
 
-
+# Download PTB-XL
 wget -r -N -c -np --directory-prefix=$root "https://physionet.org/files/ptb-xl/1.0.1/"
 mkdir "${root}/ptb-xl"
 mv "${root}/physionet.org/files/ptb-xl/1.0.1"/* "${root}/ptb-xl"
 rm -r "${root}/physionet.org/"
 
-
+# Download China Physiological Signal Challenge 2018 dataset
 wget -r -N -c -np --directory-prefix="${root}/cpsc2018" "http://hhbucket.oss-cn-hongkong.aliyuncs.com/TrainingSet1.zip"
 wget -r -N -c -np --directory-prefix="${root}/cpsc2018" "http://hhbucket.oss-cn-hongkong.aliyuncs.com/TrainingSet2.zip"
 wget -r -N -c -np --directory-prefix="${root}/cpsc2018" "http://hhbucket.oss-cn-hongkong.aliyuncs.com/TrainingSet3.zip"
@@ -37,6 +38,7 @@ rm "${root}/cpsc2018/TrainingSet1.zip"
 rm "${root}/cpsc2018/TrainingSet2.zip"
 rm "${root}/cpsc2018/TrainingSet3.zip"
 
+# Download test set from irhythm paper: https://arxiv.org/pdf/1707.01836.pdf
 
 wget -r -N -c -np --directory-prefix="${root}/irhythm-test" "https://irhythm.github.io/public_data/CARDIOL_MAY_2017.zip"
 mv "${root}/irhythm-test/irhythm.github.io/public_data"/* "${root}/irhythm-test"
@@ -44,7 +46,7 @@ rm -r "${root}/irhythm-test/irhythm.github.io/"
 unzip "${root}/irhythm-test/CARDIOL_MAY_2017.zip" -d "${root}/irhythm-test"
 rm "${root}/irhythm-test/CARDIOL_MAY_2017.zip"
 
-
+# Download ARR10000 dataset 
 wget -r -N -c -np --directory-prefix="${root}/arr10000" "https://s3-eu-west-1.amazonaws.com/pfigshare-u-files/15651326/ECGData.zip"
 wget -r -N -c -np --directory-prefix="${root}/arr10000" "https://s3-eu-west-1.amazonaws.com/pfigshare-u-files/15653771/Diagnostics.xlsx"
 wget -r -N -c -np --directory-prefix="${root}/arr10000" "https://s3-eu-west-1.amazonaws.com/pfigshare-u-files/15651296/RhythmNames.xlsx"
@@ -59,7 +61,7 @@ unzip "${root}/arr10000/ECGData.zip" -d "${root}/arr10000"
 rm -r "${root}/arr10000/s3-eu-west-1.amazonaws.com/"
 rm "${root}/arr10000/ECGData.zip"
 
-
+# Download dataset from Computers in Cardiology 2017 challenge
 wget -r -N -c -np --directory-prefix="${root}/cinc2017" https://physionet.org/files/challenge-2017/1.0.0/training2017.zip?download
 wget -r -N -c -np --directory-prefix="${root}/cinc2017" https://physionet.org/files/challenge-2017/1.0.0/REFERENCE-v3.csv?download
 mv "${root}/cinc2017/physionet.org/files/challenge-2017/1.0.0"/* "${root}/cinc2017"
